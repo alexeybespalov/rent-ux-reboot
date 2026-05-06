@@ -141,14 +141,14 @@ export function DetailsSection({ trip }: { trip: TripData }) {
         <div className="px-1 py-1 text-xs text-muted-foreground">No protection. <button className="font-medium text-primary hover:underline">Add bundle</button></div>
       </Section>
 
-      <Section title="Extras" badge={trip.extras.length ? `${trip.extras.length}` : "none"} summary={trip.extras.length ? trip.extras.map(e => e.name).join(", ") : "—"}>
+      <Section title="Extras" badge={trip.extras.length ? `${trip.extras.length}` : "none"} summary={trip.extras.length ? trip.extras.map(e => e.name).join(", ") : undefined}>
         <div className="flex items-center gap-1.5 px-1 py-1">
           <Input placeholder="+ Add extra…" className="h-7 text-xs" />
           <button className="h-7 rounded-md bg-primary px-2.5 text-xs font-medium text-primary-foreground hover:bg-primary/90">Add</button>
         </div>
       </Section>
 
-      <Section title="Notes" summary={trip.notes || "—"}>
+      <Section title="Notes" summary={trip.notes || undefined}>
         <textarea className="min-h-16 w-full rounded-md border bg-background p-2 text-xs focus:outline-none focus:ring-2 focus:ring-ring" placeholder="Internal notes…" />
       </Section>
 
