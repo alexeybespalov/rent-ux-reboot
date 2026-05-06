@@ -1,10 +1,13 @@
-import { Calendar, MapPin, Car, Phone, Mail, Globe, ChevronDown, User, Hash, CalendarCheck, MapPinned } from "lucide-react";
+import { Calendar, MapPin, Car, Phone, Mail, Globe, ChevronDown, User, Hash, CalendarCheck, MapPinned, MessageCircle, Send, Navigation, Copy } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { TripData } from "../types";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { QuickActionsPopover } from "../QuickActionsPopover";
+import { TripProgress } from "../TripProgress";
+import { useCopy } from "../useCopy";
 
 function Field({ icon: Icon, label, children, wide }: { icon: any; label: string; children: React.ReactNode; wide?: boolean }) {
   return (
@@ -20,6 +23,21 @@ function Field({ icon: Icon, label, children, wide }: { icon: any; label: string
       </Tooltip>
       <span className="min-w-0 flex-1 truncate text-xs font-medium">{children}</span>
     </div>
+  );
+}
+
+function CopyableText({ value, label }: { value: string; label?: string }) {
+  const { copy, copied } = useCopy();
+  const isCopied = copied === value;
+  return (
+    <button
+      onClick={() => copy(value, label)}
+      className="group/copy inline-flex min-w-0 max-w-full items-center gap-1 truncate text-left text-xs font-medium hover:text-primary"
+      title="Click to copy"
+    >
+      <span className="truncate">{value}</span>
+      <Copy className={cn("h-2.5 w-2.5 shrink-0 opacity-0 transition-opacity group-hover/copy:opacity-50", isCopied && "opacity-100 text-success")} />
+    </button>
   );
 }
 
@@ -40,14 +58,37 @@ function Section({ title, defaultOpen = true, children, badge }: { title: string
 }
 
 export function DetailsSection({ trip }: { trip: TripData }) {
+  const phoneDigits = trip.customer.phone.replace(/\D/g, "");
+  const mapsUrl = (q: string) => `https://maps.google.com/?q=${encodeURIComponent(q)}`;
   return (
     <div className="space-y-2">
+      <TripProgress start={trip.dates.start} end={trip.dates.end} days={trip.dates.days} />
+
       <Section title="Customer">
         <div className="grid grid-cols-2 gap-1 lg:grid-cols-3">
-          <Field icon={User} label="Name">{trip.customer.name}</Field>
-          <Field icon={Phone} label="Phone">{trip.customer.phone}</Field>
+          <Field icon={User} label="Name"><CopyableText value={trip.customer.name} label="Name copied" /></Field>
+          <Field icon={Phone} label="Phone">
+            <QuickActionsPopover
+              value={trip.customer.phone}
+              copyLabel="Phone copied"
+              actions={[
+                { label: "Call", icon: Phone, href: `tel:${phoneDigits}`, tone: "primary" },
+                { label: "WhatsApp", icon: MessageCircle, href: `https://wa.me/${phoneDigits}`, tone: "success" },
+                { label: "Telegram", icon: Send, href: `https://t.me/+${phoneDigits}` },
+                { label: "SMS", icon: MessageCircle, href: `sms:${phoneDigits}` },
+              ]}
+            />
+          </Field>
           <Field icon={Globe} label="Language">{trip.customer.lang}</Field>
-          <Field icon={Mail} label="Email" wide>{trip.customer.email}</Field>
+          <Field icon={Mail} label="Email" wide>
+            <QuickActionsPopover
+              value={trip.customer.email}
+              copyLabel="Email copied"
+              actions={[
+                { label: "Send email", icon: Mail, href: `mailto:${trip.customer.email}`, tone: "primary" },
+              ]}
+            />
+          </Field>
         </div>
       </Section>
 
@@ -59,15 +100,32 @@ export function DetailsSection({ trip }: { trip: TripData }) {
           <Field icon={CalendarCheck} label="End date">
             <Input type="datetime-local" defaultValue={trip.dates.end} className="h-5 border-0 p-0 text-xs font-medium focus-visible:ring-0" />
           </Field>
-          <Field icon={MapPin} label="Pickup location">{trip.pickup}</Field>
-          <Field icon={MapPinned} label="Drop-off location">{trip.dropoff}</Field>
+          <Field icon={MapPin} label="Pickup location">
+            <QuickActionsPopover
+              value={trip.pickup}
+              copyLabel="Pickup copied"
+              actions={[
+                { label: "Google Maps", icon: Navigation, href: mapsUrl(trip.pickup), tone: "primary" },
+                { label: "Grab", icon: Car, href: `https://www.grab.com/`, tone: "success" },
+              ]}
+            />
+          </Field>
+          <Field icon={MapPinned} label="Drop-off location">
+            <QuickActionsPopover
+              value={trip.dropoff}
+              copyLabel="Drop-off copied"
+              actions={[
+                { label: "Google Maps", icon: Navigation, href: mapsUrl(trip.dropoff), tone: "primary" },
+              ]}
+            />
+          </Field>
         </div>
       </Section>
 
       <Section title="Vehicle">
         <div className="grid grid-cols-2 gap-1">
-          <Field icon={Car} label="Car model">{trip.car.name}</Field>
-          <Field icon={Hash} label="Plate number">{trip.car.plate}</Field>
+          <Field icon={Car} label="Car model"><CopyableText value={trip.car.name} label="Model copied" /></Field>
+          <Field icon={Hash} label="Plate number"><CopyableText value={trip.car.plate} label="Plate copied" /></Field>
         </div>
       </Section>
 
