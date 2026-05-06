@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   Home,
@@ -15,6 +16,7 @@ import {
   History,
   Globe2,
   ListChecks,
+  Command as CommandIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,7 @@ import { DetailsSection } from "./sections/DetailsSection";
 import { PaymentsSection } from "./sections/PaymentsSection";
 import { OwnerSection } from "./sections/OwnerSection";
 import { DriverSection, LogSection, SiteBookingSection } from "./sections/DriverSection";
+import { CommandPalette } from "./CommandPalette";
 import type { TripStatus } from "./types";
 
 type Tab = "details" | "payments" | "owner" | "driver" | "log" | "site";
@@ -44,6 +47,75 @@ export function TripCard() {
   const [tab, setTab] = useState<Tab>("details");
   const [status, setStatus] = useState<TripStatus>(trip.status);
   const [priceOpen, setPriceOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  const tabsOrder: Tab[] = TABS.map((t) => t.key);
+
+  // Status change with undo
+  const prevStatusRef = useRef<TripStatus>(status);
+  const changeStatus = (next: TripStatus) => {
+    const prev = status;
+    prevStatusRef.current = prev;
+    setStatus(next);
+    if (next !== prev) {
+      toast(`Status → ${next.replace("_", " ")}`, {
+        action: { label: "Undo", onClick: () => setStatus(prev) },
+        duration: 5000,
+      });
+    }
+  };
+
+  const handleSave = () => toast.success("Saved", { description: `Trip #${trip.id} updated`, duration: 1800 });
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && /input|textarea|select/i.test(target.tagName)) return;
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        handleSave();
+        return;
+      }
+      const idx = parseInt(e.key, 10);
+      if (!Number.isNaN(idx) && idx >= 1 && idx <= tabsOrder.length) {
+        setTab(tabsOrder[idx - 1]);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sticky scroll detection
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 80);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Swipe between tabs (mobile)
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    touchStart.current = { x: t.clientX, y: t.clientY };
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const start = touchStart.current;
+    if (!start) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      const i = tabsOrder.indexOf(tab);
+      if (dx < 0 && i < tabsOrder.length - 1) setTab(tabsOrder[i + 1]);
+      if (dx > 0 && i > 0) setTab(tabsOrder[i - 1]);
+    }
+    touchStart.current = null;
+  };
+
+  const total = Math.round((trip.price.base + trip.price.afterHours + trip.price.lateBooking) * (1 + trip.price.taxRate));
 
   return (
     <div className="min-h-screen bg-background">
@@ -54,26 +126,50 @@ export function TripCard() {
           <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Home className="h-4 w-4" /></Button>
           <div className="ml-1 flex min-w-0 flex-1 items-center gap-2">
             <h1 className="shrink-0 text-sm font-bold sm:text-base">#{trip.id}</h1>
-            <StatusPill value={status} onChange={setStatus} />
+            <StatusPill value={status} onChange={changeStatus} />
+            {scrolled && (
+              <span className="ml-1 hidden truncate rounded-md bg-primary/10 px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-primary animate-fade-in sm:inline">
+                {new Intl.NumberFormat("en-US").format(total)}
+              </span>
+            )}
             <span className="hidden truncate rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground md:inline">
               {trip.source}
             </span>
             <span className="hidden truncate text-[11px] text-muted-foreground md:inline">{trip.voucher}</span>
           </div>
           <div className="hidden items-center gap-1 sm:flex">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setPaletteOpen(true)}
+              className="h-8 gap-1.5 text-[11px] text-muted-foreground"
+              title="Command palette (⌘K)"
+            >
+              <CommandIcon className="h-3.5 w-3.5" />
+              <kbd className="rounded border bg-muted px-1 text-[10px] font-mono">⌘K</kbd>
+            </Button>
             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
             <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"><AlertTriangle className="h-4 w-4" /></Button>
             <Button variant="ghost" size="icon" className="h-8 w-8 text-primary"><FileText className="h-4 w-4" /></Button>
             <Button variant="ghost" size="icon" className="h-8 w-8 text-primary"><Calendar className="h-4 w-4" /></Button>
-            <Button size="sm" className="h-8 gap-1.5 text-xs"><Save className="h-3.5 w-3.5" />Save</Button>
+            <Button size="sm" onClick={handleSave} className="h-8 gap-1.5 text-xs"><Save className="h-3.5 w-3.5" />Save</Button>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setPaletteOpen(true)}
+            className="h-8 w-8 sm:hidden"
+            title="Search (⌘K)"
+          >
+            <CommandIcon className="h-4 w-4" />
+          </Button>
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8 sm:hidden"><Menu className="h-4 w-4" /></Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-72">
               <div className="mt-6 space-y-2">
-                <Button className="w-full justify-start gap-2"><Save className="h-4 w-4" /> Save changes</Button>
+                <Button onClick={handleSave} className="w-full justify-start gap-2"><Save className="h-4 w-4" /> Save changes</Button>
                 <Button variant="outline" className="w-full justify-start gap-2"><FileText className="h-4 w-4" /> Open voucher</Button>
                 <Button variant="outline" className="w-full justify-start gap-2"><Calendar className="h-4 w-4" /> Open calendar</Button>
                 <Button variant="outline" className="w-full justify-start gap-2"><RotateCw className="h-4 w-4" /> Refresh</Button>
@@ -105,7 +201,7 @@ export function TripCard() {
       <div className="mx-auto max-w-7xl px-2 py-3 sm:px-4 sm:py-4">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_300px]">
           {/* Main column */}
-          <div className="min-w-0 space-y-2.5 pb-24 lg:pb-3">
+          <div className="min-w-0 space-y-2.5 pb-24 lg:pb-3" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
             {/* Tabs */}
             <div className="-mx-2 overflow-x-auto px-2 sm:mx-0 sm:px-0">
               <div className="flex min-w-fit gap-0.5 rounded-lg border bg-card p-0.5 shadow-[var(--shadow-sm)]">
@@ -136,7 +232,7 @@ export function TripCard() {
               </div>
             </div>
 
-            <div>
+            <div key={tab} className="animate-fade-in">
               {tab === "details" && <DetailsSection trip={trip} />}
               {tab === "payments" && <PaymentsSection trip={trip} />}
               {tab === "owner" && <OwnerSection trip={trip} />}
@@ -160,14 +256,12 @@ export function TripCard() {
             <div>
               <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground leading-none">Total</div>
               <div className="text-sm font-bold tabular-nums leading-tight">
-                {new Intl.NumberFormat("en-US").format(
-                  Math.round((trip.price.base + trip.price.afterHours + trip.price.lateBooking) * (1 + trip.price.taxRate)),
-                )}
+                {new Intl.NumberFormat("en-US").format(total)}
               </div>
             </div>
             <span className="text-[10px] font-medium text-primary underline">breakdown</span>
           </button>
-          <Button size="sm" className="h-8 gap-1 px-4 text-xs"><Save className="h-3 w-3" />Save</Button>
+          <Button size="sm" onClick={handleSave} className="h-8 gap-1 px-4 text-xs"><Save className="h-3 w-3" />Save</Button>
         </div>
       </div>
 
@@ -176,6 +270,15 @@ export function TripCard() {
           <PriceCard trip={trip} sticky={false} />
         </SheetContent>
       </Sheet>
+
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        trip={trip}
+        onTab={setTab}
+        onStatus={changeStatus}
+        onSave={handleSave}
+      />
     </div>
   );
 }
