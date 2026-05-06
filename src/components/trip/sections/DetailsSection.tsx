@@ -137,7 +137,7 @@ export function DetailsSection({ trip }: { trip: TripData }) {
         </div>
       </Section>
 
-      <Section title="Protection & Bundle" badge="none" summary="No protection">
+      <Section title="Protection & Bundle" badge="none">
         <div className="px-1 py-1 text-xs text-muted-foreground">No protection. <button className="font-medium text-primary hover:underline">Add bundle</button></div>
       </Section>
 
