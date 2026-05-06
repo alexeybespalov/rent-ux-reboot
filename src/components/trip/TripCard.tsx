@@ -53,12 +53,12 @@ export function TripCard() {
           <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><ArrowLeft className="h-4 w-4" /></Button>
           <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Home className="h-4 w-4" /></Button>
           <div className="ml-1 flex min-w-0 flex-1 items-center gap-2">
-            <h1 className="truncate text-sm font-bold sm:text-base">Trip #{trip.id}</h1>
+            <h1 className="shrink-0 text-sm font-bold sm:text-base">#{trip.id}</h1>
             <StatusPill value={status} onChange={setStatus} />
-            <span className="hidden rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground md:inline">
+            <span className="hidden truncate rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground md:inline">
               {trip.source}
             </span>
-            <span className="hidden text-[11px] text-muted-foreground md:inline">{trip.voucher}</span>
+            <span className="hidden truncate text-[11px] text-muted-foreground md:inline">{trip.voucher}</span>
           </div>
           <div className="hidden items-center gap-1 sm:flex">
             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
