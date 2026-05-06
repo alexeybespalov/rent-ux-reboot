@@ -1,6 +1,7 @@
-import { Calendar, MapPin, Car, Phone, Mail, Globe, ChevronDown } from "lucide-react";
+import { Calendar, MapPin, Car, Phone, Mail, Globe, ChevronDown, User, Hash, CalendarCheck, MapPinned } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { TripData } from "../types";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -8,12 +9,16 @@ import { cn } from "@/lib/utils";
 function Field({ icon: Icon, label, children, wide }: { icon: any; label: string; children: React.ReactNode; wide?: boolean }) {
   return (
     <div className={cn(
-      "group flex items-center gap-2 rounded-lg border bg-card px-2.5 py-1.5 transition-colors hover:border-primary/30",
+      "group flex items-center gap-2 rounded-lg border bg-card px-2 py-1.5 transition-colors hover:border-primary/30",
       wide && "col-span-2 lg:col-span-3",
     )}>
-      <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
-      <span className="ml-auto min-w-0 truncate text-right text-xs font-medium">{children}</span>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+        </TooltipTrigger>
+        <TooltipContent side="top" className="text-[10px]">{label}</TooltipContent>
+      </Tooltip>
+      <span className="min-w-0 flex-1 truncate text-xs font-medium">{children}</span>
     </div>
   );
 }
@@ -39,7 +44,7 @@ export function DetailsSection({ trip }: { trip: TripData }) {
     <div className="space-y-2">
       <Section title="Customer">
         <div className="grid grid-cols-2 gap-1 lg:grid-cols-3">
-          <Field icon={Phone} label="Name">{trip.customer.name}</Field>
+          <Field icon={User} label="Name">{trip.customer.name}</Field>
           <Field icon={Phone} label="Phone">{trip.customer.phone}</Field>
           <Field icon={Globe} label="Language">{trip.customer.lang}</Field>
           <Field icon={Mail} label="Email" wide>{trip.customer.email}</Field>
@@ -48,21 +53,21 @@ export function DetailsSection({ trip }: { trip: TripData }) {
 
       <Section title="Dates & Locations" badge={`${trip.dates.days} days`}>
         <div className="grid grid-cols-2 gap-1 lg:grid-cols-4">
-          <Field icon={Calendar} label="Start">
+          <Field icon={Calendar} label="Start date">
             <Input type="datetime-local" defaultValue={trip.dates.start} className="h-5 border-0 p-0 text-xs font-medium focus-visible:ring-0" />
           </Field>
-          <Field icon={Calendar} label="End">
+          <Field icon={CalendarCheck} label="End date">
             <Input type="datetime-local" defaultValue={trip.dates.end} className="h-5 border-0 p-0 text-xs font-medium focus-visible:ring-0" />
           </Field>
-          <Field icon={MapPin} label="Pickup">{trip.pickup}</Field>
-          <Field icon={MapPin} label="Drop-off">{trip.dropoff}</Field>
+          <Field icon={MapPin} label="Pickup location">{trip.pickup}</Field>
+          <Field icon={MapPinned} label="Drop-off location">{trip.dropoff}</Field>
         </div>
       </Section>
 
       <Section title="Vehicle">
         <div className="grid grid-cols-2 gap-1">
-          <Field icon={Car} label="Car">{trip.car.name}</Field>
-          <Field icon={Car} label="Plate">{trip.car.plate}</Field>
+          <Field icon={Car} label="Car model">{trip.car.name}</Field>
+          <Field icon={Hash} label="Plate number">{trip.car.plate}</Field>
         </div>
       </Section>
 
