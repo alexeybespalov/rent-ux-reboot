@@ -1,11 +1,9 @@
 export function DriverSection() {
   return (
-    <div className="space-y-3">
-      <div className="rounded-2xl border border-dashed bg-card p-6 text-center">
-        <div className="text-sm font-semibold">No driver assigned</div>
-        <div className="mt-1 text-xs text-muted-foreground">Assign a driver to enable trip handoff & tracking.</div>
-        <button className="mt-3 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90">Assign driver</button>
-      </div>
+    <div className="rounded-xl border border-dashed bg-card p-4 text-center">
+      <div className="text-xs font-semibold">No driver assigned</div>
+      <div className="mt-0.5 text-[11px] text-muted-foreground">Assign for handoff & tracking.</div>
+      <button className="mt-2 rounded-md bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90">Assign driver</button>
     </div>
   );
 }
@@ -17,14 +15,12 @@ export function LogSection() {
     { time: "Today 11:30", text: "Payment of 475 USD recorded as RENT", who: "Sergey" },
   ];
   return (
-    <div className="space-y-1">
+    <div className="divide-y overflow-hidden rounded-xl border bg-card">
       {events.map((e, i) => (
-        <div key={i} className="flex gap-3 rounded-lg border bg-card px-3 py-2.5">
-          <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
-          <div className="flex-1">
-            <div className="text-sm">{e.text}</div>
-            <div className="text-xs text-muted-foreground">{e.time} • {e.who}</div>
-          </div>
+        <div key={i} className="flex items-center gap-2 px-2.5 py-1.5">
+          <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+          <div className="min-w-0 flex-1 truncate text-xs">{e.text}</div>
+          <div className="text-[10px] text-muted-foreground">{e.time} · {e.who}</div>
         </div>
       ))}
     </div>
@@ -33,17 +29,17 @@ export function LogSection() {
 
 export function SiteBookingSection() {
   return (
-    <div className="rounded-2xl border bg-card p-4">
+    <div className="rounded-xl border bg-card p-2.5">
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Site Status</div>
-          <div className="mt-1 text-sm font-semibold">Pending sync</div>
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Site Status</div>
+          <div className="text-xs font-semibold">Pending sync</div>
         </div>
-        <button className="rounded-lg border px-3 py-1.5 text-xs font-medium hover:bg-muted">Refresh</button>
+        <button className="rounded-md border px-2 py-1 text-[11px] font-medium hover:bg-muted">Refresh</button>
       </div>
-      <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-        <div className="rounded-lg bg-muted p-2"><div className="text-muted-foreground">Voucher</div><div className="font-medium">VR-NZ4873</div></div>
-        <div className="rounded-lg bg-muted p-2"><div className="text-muted-foreground">Channel</div><div className="font-medium">Website</div></div>
+      <div className="mt-2 grid grid-cols-2 gap-1.5 text-[11px]">
+        <div className="rounded-md bg-muted px-2 py-1"><div className="text-muted-foreground">Voucher</div><div className="font-medium">VR-NZ4873</div></div>
+        <div className="rounded-md bg-muted px-2 py-1"><div className="text-muted-foreground">Channel</div><div className="font-medium">Website</div></div>
       </div>
     </div>
   );
