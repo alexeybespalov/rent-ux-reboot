@@ -99,7 +99,12 @@ export function DetailsSection({ trip }: { trip: TripData }) {
       <Section
         title="Dates & Locations"
         badge={`${trip.dates.days}d`}
-        summary={`${fmtDate(trip.dates.start)} → ${fmtDate(trip.dates.end)}`}
+        summary={
+          <span className="flex min-w-0 flex-col leading-tight">
+            <span className="truncate tabular-nums">{fmtDate(trip.dates.start)} → {fmtDate(trip.dates.end)}</span>
+            <span className="truncate text-[10px] font-normal text-muted-foreground">{trip.pickup} → {trip.dropoff}</span>
+          </span>
+        }
       >
         <div className="grid grid-cols-2 gap-1 lg:grid-cols-4">
           <Field icon={Calendar} label="Start date">
