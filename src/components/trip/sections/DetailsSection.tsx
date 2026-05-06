@@ -5,11 +5,14 @@ import type { TripData } from "../types";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-function Field({ icon: Icon, label, children }: { icon: any; label: string; children: React.ReactNode }) {
+function Field({ icon: Icon, label, children, wide }: { icon: any; label: string; children: React.ReactNode; wide?: boolean }) {
   return (
-    <div className="group flex items-center gap-2 rounded-lg border bg-card px-2.5 py-1.5 transition-colors hover:border-primary/30">
+    <div className={cn(
+      "group flex items-center gap-2 rounded-lg border bg-card px-2.5 py-1.5 transition-colors hover:border-primary/30",
+      wide && "col-span-2 lg:col-span-3",
+    )}>
       <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
       <span className="ml-auto min-w-0 truncate text-right text-xs font-medium">{children}</span>
     </div>
   );
@@ -35,16 +38,16 @@ export function DetailsSection({ trip }: { trip: TripData }) {
   return (
     <div className="space-y-2">
       <Section title="Customer">
-        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-1 lg:grid-cols-3">
           <Field icon={Phone} label="Name">{trip.customer.name}</Field>
           <Field icon={Phone} label="Phone">{trip.customer.phone}</Field>
-          <Field icon={Mail} label="Email">{trip.customer.email}</Field>
           <Field icon={Globe} label="Language">{trip.customer.lang}</Field>
+          <Field icon={Mail} label="Email" wide>{trip.customer.email}</Field>
         </div>
       </Section>
 
       <Section title="Dates & Locations" badge={`${trip.dates.days} days`}>
-        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-1 lg:grid-cols-4">
           <Field icon={Calendar} label="Start">
             <Input type="datetime-local" defaultValue={trip.dates.start} className="h-5 border-0 p-0 text-xs font-medium focus-visible:ring-0" />
           </Field>
@@ -57,7 +60,7 @@ export function DetailsSection({ trip }: { trip: TripData }) {
       </Section>
 
       <Section title="Vehicle">
-        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-1">
           <Field icon={Car} label="Car">{trip.car.name}</Field>
           <Field icon={Car} label="Plate">{trip.car.plate}</Field>
         </div>
