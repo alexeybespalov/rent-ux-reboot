@@ -49,26 +49,26 @@ export function TripCard() {
     <div className="min-h-screen bg-background">
       {/* Top bar */}
       <header className="sticky top-0 z-30 border-b bg-card/80 backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-3 sm:px-5">
-          <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0"><ArrowLeft className="h-4 w-4" /></Button>
-          <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0"><Home className="h-4 w-4" /></Button>
+        <div className="mx-auto flex h-11 max-w-7xl items-center gap-1 px-2 sm:px-4">
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><ArrowLeft className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Home className="h-4 w-4" /></Button>
           <div className="ml-1 flex min-w-0 flex-1 items-baseline gap-2">
-            <h1 className="truncate text-base font-bold sm:text-lg">Trip #{trip.id}</h1>
-            <span className="hidden rounded-md bg-primary-soft px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary sm:inline">
+            <h1 className="truncate text-sm font-bold sm:text-base">Trip #{trip.id}</h1>
+            <span className="hidden rounded bg-primary-soft px-1.5 py-0 text-[10px] font-bold uppercase tracking-wider text-primary sm:inline">
               {trip.source}
             </span>
-            <span className="hidden text-xs text-muted-foreground sm:inline">{trip.voucher}</span>
+            <span className="hidden text-[11px] text-muted-foreground sm:inline">{trip.voucher}</span>
           </div>
           <div className="hidden items-center gap-1 sm:flex">
-            <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
-            <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive"><AlertTriangle className="h-4 w-4" /></Button>
-            <Button variant="ghost" size="icon" className="h-9 w-9 text-primary"><FileText className="h-4 w-4" /></Button>
-            <Button variant="ghost" size="icon" className="h-9 w-9 text-primary"><Calendar className="h-4 w-4" /></Button>
-            <Button size="sm" className="h-9 gap-1.5"><Save className="h-3.5 w-3.5" />Save</Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"><AlertTriangle className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary"><FileText className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary"><Calendar className="h-4 w-4" /></Button>
+            <Button size="sm" className="h-8 gap-1.5 text-xs"><Save className="h-3.5 w-3.5" />Save</Button>
           </div>
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-9 w-9 sm:hidden"><Menu className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8 sm:hidden"><Menu className="h-4 w-4" /></Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-72">
               <div className="mt-6 space-y-2">
@@ -84,14 +84,14 @@ export function TripCard() {
 
         {trip.issues.total > 0 && (
           <div className="border-t bg-destructive-soft">
-            <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-1.5 text-xs sm:px-5">
-              <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
+            <div className="mx-auto flex max-w-7xl items-center gap-1.5 px-2 py-1 text-[11px] sm:px-4">
+              <AlertTriangle className="h-3 w-3 text-destructive" />
               <span className="font-semibold text-destructive">
                 {trip.issues.total} issue{trip.issues.total > 1 ? "s" : ""} found
               </span>
               <span className="text-destructive/80">({trip.issues.critical} critical)</span>
               {trip.issues.tags.map((t) => (
-                <span key={t} className="ml-auto rounded-full bg-destructive px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-destructive-foreground">
+                <span key={t} className="ml-auto rounded bg-destructive px-1.5 py-0 text-[9px] font-bold uppercase tracking-wide text-destructive-foreground">
                   {t}
                 </span>
               ))}
@@ -101,15 +101,15 @@ export function TripCard() {
       </header>
 
       {/* Body */}
-      <div className="mx-auto max-w-7xl px-3 py-4 sm:px-5 sm:py-5">
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
+      <div className="mx-auto max-w-7xl px-2 py-3 sm:px-4 sm:py-4">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_300px]">
           {/* Main column */}
-          <div className="min-w-0 space-y-4 pb-32 lg:pb-4">
+          <div className="min-w-0 space-y-2.5 pb-24 lg:pb-3">
             <StatusFlow value={status} onChange={setStatus} />
 
             {/* Tabs */}
-            <div className="-mx-3 overflow-x-auto px-3 sm:mx-0 sm:px-0">
-              <div className="flex min-w-fit gap-1 rounded-xl border bg-card p-1 shadow-[var(--shadow-sm)]">
+            <div className="-mx-2 overflow-x-auto px-2 sm:mx-0 sm:px-0">
+              <div className="flex min-w-fit gap-0.5 rounded-lg border bg-card p-0.5 shadow-[var(--shadow-sm)]">
                 {TABS.map((t) => {
                   const Icon = t.icon;
                   const active = tab === t.key;
@@ -118,15 +118,15 @@ export function TripCard() {
                       key={t.key}
                       onClick={() => setTab(t.key)}
                       className={cn(
-                        "relative flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition-all",
+                        "relative flex flex-1 items-center justify-center gap-1 whitespace-nowrap rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-all",
                         active ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground",
                       )}
                     >
-                      <Icon className="h-3.5 w-3.5" />
+                      <Icon className="h-3 w-3" />
                       <span>{t.label}</span>
                       {t.dot && (
                         <span className={cn(
-                          "absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full",
+                          "absolute right-1 top-1 h-1 w-1 rounded-full",
                           t.dot === "danger" ? "bg-destructive" : "bg-warning",
                           active && "bg-primary-foreground",
                         )} />
@@ -156,19 +156,19 @@ export function TripCard() {
 
       {/* Mobile sticky price bar */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-card/95 backdrop-blur-md lg:hidden">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-3 py-2.5">
+        <div className="mx-auto flex max-w-7xl items-center gap-2 px-2.5 py-1.5">
           <button onClick={() => setPriceOpen(true)} className="flex flex-1 items-baseline gap-2 text-left">
             <div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total</div>
-              <div className="text-base font-bold tabular-nums">
+              <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground leading-none">Total</div>
+              <div className="text-sm font-bold tabular-nums leading-tight">
                 {new Intl.NumberFormat("en-US").format(
                   Math.round((trip.price.base + trip.price.afterHours + trip.price.lateBooking) * (1 + trip.price.taxRate)),
                 )}
               </div>
             </div>
-            <span className="text-[10px] font-medium text-primary underline">Breakdown</span>
+            <span className="text-[10px] font-medium text-primary underline">breakdown</span>
           </button>
-          <Button size="sm" className="h-10 gap-1.5 px-5"><Save className="h-3.5 w-3.5" />Save</Button>
+          <Button size="sm" className="h-8 gap-1 px-4 text-xs"><Save className="h-3 w-3" />Save</Button>
         </div>
       </div>
 
