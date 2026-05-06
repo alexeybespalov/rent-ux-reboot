@@ -41,7 +41,9 @@ function Section({
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="rounded-xl border bg-card/50">
       <CollapsibleTrigger className="group flex w-full items-center gap-2 px-3 py-1.5 text-left">
-        <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{title}</span>
+        {(open || !summary) && (
+          <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{title}</span>
+        )}
         {badge && <span className="shrink-0 rounded-full bg-muted px-1.5 py-0 text-[10px] font-medium text-muted-foreground">{badge}</span>}
         {!open && summary && (
           <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">{summary}</span>
