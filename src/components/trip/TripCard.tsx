@@ -167,13 +167,52 @@ export function TripCard() {
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8 sm:hidden"><Menu className="h-4 w-4" /></Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-72">
-              <div className="mt-6 space-y-2">
-                <Button onClick={handleSave} className="w-full justify-start gap-2"><Save className="h-4 w-4" /> Save changes</Button>
-                <Button variant="outline" className="w-full justify-start gap-2"><FileText className="h-4 w-4" /> Open voucher</Button>
-                <Button variant="outline" className="w-full justify-start gap-2"><Calendar className="h-4 w-4" /> Open calendar</Button>
-                <Button variant="outline" className="w-full justify-start gap-2"><RotateCw className="h-4 w-4" /> Refresh</Button>
-                <Button variant="outline" className="w-full justify-start gap-2 text-destructive"><Trash2 className="h-4 w-4" /> Delete trip</Button>
+            <SheetContent side="bottom" className="rounded-t-2xl p-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
+              <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-muted" />
+              <div className="mb-2 flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold">#{trip.id}</span>
+                  <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    {trip.voucher}
+                  </span>
+                </div>
+                <span className="text-[10px] text-muted-foreground">Trip actions</span>
+              </div>
+
+              {/* Primary CTA */}
+              <button
+                onClick={handleSave}
+                className="mb-2 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-md)] active:scale-[0.98] transition-transform"
+              >
+                <Save className="h-4 w-4" /> Save changes
+              </button>
+
+              {/* Action grid */}
+              <div className="grid grid-cols-4 gap-1.5">
+                {[
+                  { icon: FileText, label: "Voucher", tone: "primary" as const },
+                  { icon: Calendar, label: "Calendar", tone: "primary" as const },
+                  { icon: RotateCw, label: "Refresh", tone: "default" as const },
+                  { icon: CommandIcon, label: "Search", tone: "default" as const, onClick: () => setPaletteOpen(true) },
+                  { icon: AlertTriangle, label: "Issues", tone: "warn" as const },
+                  { icon: CreditCard, label: "Payment", tone: "default" as const, onClick: () => setTab("payments") },
+                  { icon: User, label: "Driver", tone: "default" as const, onClick: () => setTab("driver") },
+                  { icon: Trash2, label: "Delete", tone: "danger" as const },
+                ].map((a) => (
+                  <button
+                    key={a.label}
+                    onClick={a.onClick}
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-1 rounded-xl border bg-card py-2 text-[10px] font-semibold transition-colors active:scale-95",
+                      a.tone === "primary" && "text-primary",
+                      a.tone === "warn" && "border-warning/30 bg-warning-soft/40 text-warning",
+                      a.tone === "danger" && "border-destructive/30 bg-destructive-soft/40 text-destructive",
+                    )}
+                  >
+                    <a.icon className="h-4 w-4" />
+                    {a.label}
+                  </button>
+                ))}
               </div>
             </SheetContent>
           </Sheet>
