@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { mockTrip } from "./mockData";
-import { StatusFlow } from "./StatusFlow";
+import { StatusPill } from "./StatusPill";
 import { PriceCard } from "./PriceCard";
 import { DetailsSection } from "./sections/DetailsSection";
 import { PaymentsSection } from "./sections/PaymentsSection";
@@ -52,12 +52,13 @@ export function TripCard() {
         <div className="mx-auto flex h-11 max-w-7xl items-center gap-1 px-2 sm:px-4">
           <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><ArrowLeft className="h-4 w-4" /></Button>
           <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Home className="h-4 w-4" /></Button>
-          <div className="ml-1 flex min-w-0 flex-1 items-baseline gap-2">
+          <div className="ml-1 flex min-w-0 flex-1 items-center gap-2">
             <h1 className="truncate text-sm font-bold sm:text-base">Trip #{trip.id}</h1>
-            <span className="hidden rounded bg-primary-soft px-1.5 py-0 text-[10px] font-bold uppercase tracking-wider text-primary sm:inline">
+            <StatusPill value={status} onChange={setStatus} />
+            <span className="hidden rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground md:inline">
               {trip.source}
             </span>
-            <span className="hidden text-[11px] text-muted-foreground sm:inline">{trip.voucher}</span>
+            <span className="hidden text-[11px] text-muted-foreground md:inline">{trip.voucher}</span>
           </div>
           <div className="hidden items-center gap-1 sm:flex">
             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
@@ -105,8 +106,6 @@ export function TripCard() {
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_300px]">
           {/* Main column */}
           <div className="min-w-0 space-y-2.5 pb-24 lg:pb-3">
-            <StatusFlow value={status} onChange={setStatus} />
-
             {/* Tabs */}
             <div className="-mx-2 overflow-x-auto px-2 sm:mx-0 sm:px-0">
               <div className="flex min-w-fit gap-0.5 rounded-lg border bg-card p-0.5 shadow-[var(--shadow-sm)]">
