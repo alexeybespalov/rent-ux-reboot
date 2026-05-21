@@ -26,7 +26,21 @@ import { cn } from "@/lib/utils";
 import { mockTrips, type TripRow, type TripStatus } from "./mockTrips";
 import { mockTrip } from "@/components/trip/mockData";
 import { PriceCard } from "@/components/trip/PriceCard";
-import { Mail, Languages } from "lucide-react";
+import {
+  Mail,
+  Languages,
+  Menu,
+  Command as CommandIcon,
+  Sun,
+  Sunrise,
+  CalendarRange,
+  Infinity as InfinityIcon,
+  ListChecks,
+  FileText,
+  RotateCw,
+} from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 
 /* ---------- helpers ---------- */
 
@@ -93,17 +107,23 @@ function detectConflicts(rows: TripRow[]): Set<number> {
   return out;
 }
 
-/* ---------- filter chips ---------- */
+/* ---------- filter chips (icon-only with tooltips) ---------- */
 
 type ChipKey = "home" | "issues" | "done" | "reject";
-const CHIPS: { key: ChipKey; icon: any; label: string; tone?: string }[] = [
-  { key: "home",   icon: HomeIcon, label: "All" },
-  { key: "issues", icon: Sparkles, label: "Issues", tone: "text-warning" },
-  { key: "done",   icon: CheckCheck, label: "Done", tone: "text-success" },
-  { key: "reject", icon: Ban, label: "Reject", tone: "text-destructive" },
+const CHIPS: { key: ChipKey; icon: any; title: string; tone?: string }[] = [
+  { key: "home",   icon: ListChecks, title: "All trips" },
+  { key: "issues", icon: Sparkles,   title: "Issues / conflicts", tone: "text-warning" },
+  { key: "done",   icon: CheckCheck, title: "Done & finished",    tone: "text-success" },
+  { key: "reject", icon: Ban,        title: "Rejected",           tone: "text-destructive" },
 ];
 
 type RangeKey = "today" | "tomorrow" | "7d" | "all";
+const RANGES: { key: RangeKey; icon: any; title: string }[] = [
+  { key: "today",    icon: Sun,           title: "Today" },
+  { key: "tomorrow", icon: Sunrise,       title: "Tomorrow" },
+  { key: "7d",       icon: CalendarRange, title: "Next 7 days" },
+  { key: "all",      icon: InfinityIcon,  title: "Any date" },
+];
 
 /* ---------- main component ---------- */
 
