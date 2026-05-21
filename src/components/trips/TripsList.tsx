@@ -18,19 +18,39 @@ import {
   Car as CarIcon,
   CheckCheck,
   Flag,
+  MapPin,
+  Clock,
+  Wallet,
+  Receipt,
+  Globe2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mockTrips, type TripRow, type TripStatus } from "./mockTrips";
 
 /* ---------- helpers ---------- */
 
-const STATUS_META: Record<TripStatus, { label: string; rail: string; text: string }> = {
+const STATUS_META: Record<TripStatus, { label: string; rail: string; text: string; rowBg?: string; hideLabel?: boolean }> = {
   new:       { label: "new",       rail: "bg-primary",          text: "text-primary" },
   confirmed: { label: "confirmed", rail: "bg-warning",          text: "text-warning" },
   in_rent:   { label: "in_rent",   rail: "bg-success",          text: "text-success" },
-  finished:  { label: "finished",  rail: "bg-sky-400",          text: "text-sky-600" },
-  done:      { label: "done",      rail: "bg-muted-foreground", text: "text-muted-foreground" },
+  // finished — без текста, выделяем лёгкой пастелью на фоне строки
+  finished:  { label: "finished",  rail: "bg-sky-300",          text: "text-sky-700", rowBg: "bg-sky-50/70 hover:bg-sky-50", hideLabel: true },
+  done:      { label: "done",      rail: "bg-muted-foreground", text: "text-muted-foreground", rowBg: "bg-muted/30", hideLabel: true },
   reject:    { label: "reject",    rail: "bg-destructive",      text: "text-destructive" },
+};
+
+/* ---------- badge palette (color-coded so OA / D+ / R+ / H not blend) ---------- */
+const BADGE_STYLE: Record<string, string> = {
+  "D+": "border-emerald-300 bg-emerald-50 text-emerald-700",   // Deposit paid
+  "R+": "border-blue-300 bg-blue-50 text-blue-700",            // Rent paid
+  "OA": "border-amber-300 bg-amber-50 text-amber-700",         // Owner action
+  "H":  "border-violet-300 bg-violet-50 text-violet-700",      // Handover / hold
+};
+const BADGE_TITLE: Record<string, string> = {
+  "D+": "Deposit paid",
+  "R+": "Rent paid",
+  "OA": "Owner action",
+  "H":  "Handover",
 };
 
 function fmtDM(iso: string) {
@@ -40,6 +60,12 @@ function fmtDM(iso: string) {
 function fmtTime(iso: string) {
   const d = new Date(iso);
   return `${String(d.getHours()).padStart(2,"0")}h`;
+}
+function daysBetween(a: string, b: string) {
+  return Math.max(1, Math.round((+new Date(b) - +new Date(a)) / 86400000));
+}
+function fmtVnd(v: number) {
+  return new Intl.NumberFormat("en-US").format(v);
 }
 
 /* ---------- conflict detection: same car overlapping ---------- */
