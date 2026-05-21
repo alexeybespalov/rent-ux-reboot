@@ -540,81 +540,8 @@ function DetailPreview({ row, hasConflict, onClose }: { row: TripRow; hasConflic
           </div>
         </div>
 
-        {/* Payments summary (from edit model) */}
-        <div className="rounded-lg border bg-background p-2.5">
-          <div className="mb-1.5 flex items-center justify-between">
-            <div className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-              <Wallet className="h-2.5 w-2.5" /> Payments
-            </div>
-            {hasOA && (
-              <span className="rounded border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-700">
-                OA · owner action
-              </span>
-            )}
-          </div>
-          <div className="mb-2 grid grid-cols-3 gap-1">
-            <div className="rounded-md border bg-success-soft/40 px-2 py-1">
-              <div className="text-[9px] font-bold uppercase tracking-wider text-success">In USD</div>
-              <div className="text-[11px] font-bold tabular-nums">{fmtN(inUsd)}</div>
-            </div>
-            <div className="rounded-md border bg-success-soft/40 px-2 py-1">
-              <div className="text-[9px] font-bold uppercase tracking-wider text-success">In VND</div>
-              <div className="text-[11px] font-bold tabular-nums">{fmtN(inVnd)}</div>
-            </div>
-            <div className="rounded-md border bg-muted/40 px-2 py-1">
-              <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Δ VND</div>
-              <div className="text-[11px] font-bold tabular-nums text-success">{fmtN(settled)}</div>
-            </div>
-          </div>
-          <div className="divide-y overflow-hidden rounded-md border bg-card">
-            {trip.payments.map((p) => (
-              <div key={p.id} className="flex items-center gap-1.5 px-2 py-1.5">
-                <div className={cn(
-                  "flex h-5 w-5 shrink-0 items-center justify-center rounded-full",
-                  p.direction === "in" ? "bg-success-soft text-success" : "bg-destructive-soft text-destructive",
-                )}>
-                  {p.direction === "in" ? <ArrowDownLeft className="h-2.5 w-2.5" /> : <ArrowUpRight className="h-2.5 w-2.5" />}
-                </div>
-                <span className={cn(
-                  "shrink-0 rounded px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider",
-                  p.type === "RENT" && "bg-primary-soft text-primary",
-                  p.type === "DEPOSIT" && "bg-success-soft text-success",
-                  p.type === "EXTRA" && "bg-warning-soft text-warning",
-                )}>{p.type}</span>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-[11px] font-medium">{p.party}</div>
-                  <div className="truncate text-[9.5px] text-muted-foreground">{p.date} · {p.method}</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-[11px] font-bold tabular-nums">{fmtN(p.amount)} {p.currency}</div>
-                  <div className={cn(
-                    "inline-flex items-center gap-0.5 text-[9px] font-semibold",
-                    p.status === "Done" ? "text-success" : "text-warning",
-                  )}>
-                    {p.status === "Done" ? <Check className="h-2 w-2" /> : <AlertCircle className="h-2 w-2" />}
-                    {p.status}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Live Price card from edit page */}
-        <PriceCard trip={trip} sticky={false} />
-
-        {/* Terms */}
-        <div className="rounded-lg border bg-background p-2.5">
-          <div className="mb-1 flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-            <FileText className="h-2.5 w-2.5" /> Terms
-          </div>
-          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10.5px]">
-            <div className="text-muted-foreground">Mileage</div><div className="text-right font-semibold">{trip.terms.mileage}</div>
-            <div className="text-muted-foreground">Free cancel</div><div className="text-right font-semibold">{trip.terms.freeCancel}</div>
-            <div className="text-muted-foreground">Driving rules</div><div className="text-right font-semibold">{trip.terms.drivingRules}</div>
-            <div className="text-muted-foreground">Currency</div><div className="text-right font-semibold">{trip.terms.currency}</div>
-          </div>
-        </div>
+        {/* Live Price card from edit page (read-only) */}
+        <PriceCard trip={trip} sticky={false} showSave={false} />
 
         {/* Note */}
         {row.note && (
