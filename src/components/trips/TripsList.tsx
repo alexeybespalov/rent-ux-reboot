@@ -41,22 +41,6 @@ function fmtTime(iso: string) {
   const d = new Date(iso);
   return `${String(d.getHours()).padStart(2,"0")}h`;
 }
-function dayKey(iso: string) {
-  const d = new Date(iso);
-  return d.toISOString().slice(0,10);
-}
-function dayLabel(iso: string) {
-  const today = new Date(); today.setHours(0,0,0,0);
-  const tomorrow = new Date(today); tomorrow.setDate(today.getDate()+1);
-  const d = new Date(iso); d.setHours(0,0,0,0);
-  const diff = Math.round((d.getTime()-today.getTime())/86400000);
-  if (diff === 0) return "Today";
-  if (diff === 1) return "Tomorrow";
-  if (diff === -1) return "Yesterday";
-  const w = d.toLocaleDateString("en-US",{weekday:"short"});
-  const m = d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
-  return `${w} · ${m}`;
-}
 
 /* ---------- conflict detection: same car overlapping ---------- */
 function detectConflicts(rows: TripRow[]): Set<number> {
@@ -134,15 +118,9 @@ export default function TripsList() {
     });
   }, [query, chip, range, statusFilter, conflicts]);
 
-  /* group by start day */
-  const groups = useMemo(() => {
-    const map = new Map<string, TripRow[]>();
-    for (const r of filtered) {
-      const k = dayKey(r.start);
-      if (!map.has(k)) map.set(k, []);
-      map.get(k)!.push(r);
-    }
-    return Array.from(map.entries()).sort(([a],[b]) => a < b ? -1 : 1);
+  /* flat list sorted by start */
+  const sorted = useMemo(() => {
+    return [...filtered].sort((a, b) => +new Date(a.start) - +new Date(b.start));
   }, [filtered]);
 
   const toggleSelect = (id: number) => {
@@ -278,19 +256,12 @@ export default function TripsList() {
       {/* Body: master / detail on lg */}
       <div className="mx-auto grid max-w-7xl grid-cols-1 lg:grid-cols-[1fr_380px]">
         <main className="min-w-0">
-          {groups.length === 0 && (
+          {sorted.length === 0 && (
             <div className="p-10 text-center text-xs text-muted-foreground">No trips match the filters.</div>
           )}
-          {groups.map(([k, rows]) => (
-            <section key={k}>
-              <div className="sticky top-[76px] z-20 flex items-center gap-2 border-b bg-background/95 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground backdrop-blur sm:top-[80px]">
-                <span className="text-foreground">{dayLabel(rows[0].start)}</span>
-                <span className="text-muted-foreground/70">· {fmtDM(rows[0].start)}</span>
-                <span className="ml-auto rounded bg-muted px-1.5 py-0.5 tabular-nums">{rows.length}</span>
-              </div>
-              <ul className="divide-y divide-border/70">
-                {rows.map((r) => {
-                  const meta = STATUS_META[r.status];
+          <ul className="divide-y divide-border/70">
+            {sorted.map((r) => {
+              const meta = STATUS_META[r.status];
                   const isSel = selected.has(r.id);
                   const isActive = activeId === r.id;
                   const hasConflict = conflicts.has(r.id);
@@ -370,12 +341,10 @@ export default function TripsList() {
                           <MessageCircle className="h-3 w-3 text-success" />
                         </button>
                       </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-          ))}
+                </li>
+              );
+            })}
+          </ul>
         </main>
 
         {/* desktop master-detail preview */}
