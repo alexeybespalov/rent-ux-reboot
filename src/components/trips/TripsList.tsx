@@ -299,7 +299,8 @@ export default function TripsList() {
                       key={r.id}
                       onClick={() => {
                         if (selectMode) toggleSelect(r.id);
-                        else setActiveId(r.id);
+                        else if (window.matchMedia("(min-width: 1024px)").matches) setActiveId(r.id);
+                        else navigate("/");
                       }}
                       onMouseDown={() => onPressStart(r.id)}
                       onMouseUp={onPressEnd}
@@ -307,12 +308,12 @@ export default function TripsList() {
                       onTouchStart={() => onPressStart(r.id)}
                       onTouchEnd={onPressEnd}
                       className={cn(
-                        "group relative flex cursor-pointer items-stretch gap-2 pl-0 pr-2 transition-colors",
-                        isActive ? "bg-primary-soft/60" : isSel ? "bg-primary-soft/40" : "hover:bg-muted/50",
+                        "group relative flex cursor-pointer items-stretch gap-1.5 pl-0 pr-2 transition-colors",
+                        isActive ? "bg-muted/60" : isSel ? "bg-primary-soft/30" : "hover:bg-muted/40",
                       )}
                     >
                       {/* status rail */}
-                      <span className={cn("w-[3px] shrink-0", meta.rail)} />
+                      <span className={cn("w-[2px] shrink-0", meta.rail)} />
 
                       {/* checkbox in select mode */}
                       {selectMode && (
@@ -324,47 +325,40 @@ export default function TripsList() {
                         </button>
                       )}
 
-                      {/* main content — ultra-dense */}
-                      <div className="min-w-0 flex-1 py-1">
-                        {/* row 1 */}
+                      {/* main content — ultra-dense, monochrome */}
+                      <div className="min-w-0 flex-1 py-[5px]">
+                        {/* row 1: id · status · client · meta */}
                         <div className="flex items-center gap-1.5 text-[11px] leading-tight">
-                          <span className="shrink-0 font-bold tabular-nums">#{r.id}</span>
-                          <span className={cn("shrink-0 rounded px-1 text-[9px] font-bold uppercase tracking-wider", meta.tint, meta.text)}>
+                          <span className="shrink-0 font-bold tabular-nums text-muted-foreground">#{r.id}</span>
+                          <span className={cn("shrink-0 text-[10px] font-semibold lowercase", meta.text)}>
                             {r.status.replace("_"," ")}
                           </span>
+                          <span className="min-w-0 flex-1 truncate font-semibold text-foreground">
+                            {r.flag && <Flag className="mr-1 inline h-2.5 w-2.5 fill-destructive text-destructive" />}
+                            {r.client}
+                          </span>
                           {r.daysLeft != null && (
-                            <span className="shrink-0 rounded bg-muted px-1 text-[9px] font-bold tabular-nums text-muted-foreground">({r.daysLeft})</span>
+                            <span className="shrink-0 tabular-nums text-[10px] text-muted-foreground">{r.daysLeft}d</span>
                           )}
                           {r.badges?.map((b) => (
-                            <span key={b} className={cn("shrink-0 rounded px-1 text-[9px] font-bold", BADGE_STYLE[b] ?? "bg-muted text-foreground")}>{b}</span>
+                            <span key={b} className="shrink-0 rounded border border-border px-1 text-[9px] font-semibold text-muted-foreground">{b}</span>
                           ))}
                           {hasConflict && (
-                            <span title="Car overlap conflict" className="shrink-0 inline-flex items-center gap-0.5 rounded bg-destructive-soft px-1 text-[9px] font-bold text-destructive">
-                              <AlertTriangle className="h-2.5 w-2.5" /> conflict
-                            </span>
+                            <AlertTriangle className="h-3 w-3 shrink-0 text-destructive" />
                           )}
-                          <span className="ml-auto shrink-0 truncate font-semibold text-foreground">{r.client}</span>
                         </div>
-                        {/* row 2 */}
+                        {/* row 2: dates · car */}
                         <div className="mt-0.5 flex items-center gap-1.5 text-[10.5px] leading-tight text-muted-foreground">
-                          <span className="shrink-0 tabular-nums">{fmtDM(r.start)} {fmtTime(r.start)}</span>
-                          <span className="shrink-0">→</span>
-                          <span className="shrink-0 font-semibold tabular-nums text-foreground">{fmtDM(r.end)} {fmtTime(r.end)}</span>
-                          <span className="mx-1 hidden h-3 w-px bg-border sm:inline" />
-                          <span className="hidden truncate sm:inline">{r.pickup}{r.dropoff && r.pickup !== r.dropoff ? ` → ${r.dropoff}` : ""}</span>
-                          <span className="ml-auto flex min-w-0 shrink items-center gap-1 truncate">
-                            {r.flag && <Flag className="h-2.5 w-2.5 shrink-0 fill-destructive text-destructive" />}
-                            <CarIcon className={cn("h-2.5 w-2.5 shrink-0", r.carIcon === "ok" ? "text-success" : "text-muted-foreground")} />
-                            <span className="truncate text-foreground">{r.car}</span>
-                            <span className="shrink-0 tabular-nums">{r.plate}</span>
+                          <span className="shrink-0 tabular-nums">{fmtDM(r.start)}–{fmtDM(r.end)}</span>
+                          <span className="shrink-0 text-muted-foreground/60">·</span>
+                          <span className="min-w-0 flex-1 truncate">
+                            <CarIcon className={cn("mr-1 inline h-2.5 w-2.5", r.carIcon === "ok" ? "text-success" : "text-muted-foreground/60")} />
+                            {r.car || "—"} <span className="tabular-nums text-muted-foreground/80">{r.plate}</span>
                           </span>
+                          {r.note && (
+                            <span className="ml-1 shrink truncate max-w-[40%] text-warning/80">{r.note}</span>
+                          )}
                         </div>
-                        {/* row 3 note */}
-                        {r.note && (
-                          <div className="mt-0.5 truncate text-[10.5px] leading-tight text-warning/90">
-                            <span className="mr-1">📝</span>{r.note}
-                          </div>
-                        )}
                       </div>
 
                       {/* quick actions desktop hover */}
