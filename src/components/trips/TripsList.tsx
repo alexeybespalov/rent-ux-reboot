@@ -404,7 +404,7 @@ export default function TripsList() {
       {active && (
         <div className="lg:hidden">
           <div onClick={() => setActiveId(null)} className="fixed inset-0 z-40 bg-black/40 animate-fade-in" />
-          <div className="fixed inset-x-0 bottom-0 z-50 max-h-[80vh] overflow-y-auto rounded-t-2xl border-t bg-card pb-[max(env(safe-area-inset-bottom),0.75rem)] shadow-[var(--shadow-lg)] animate-slide-in-right">
+          <div className="fixed inset-x-0 bottom-0 z-50 max-h-[80vh] overflow-y-auto rounded-t-2xl border-t bg-card pb-[max(env(safe-area-inset-bottom),0.75rem)] shadow-[var(--shadow-lg)] animate-fade-in">
             <div className="mx-auto my-2 h-1 w-10 rounded-full bg-muted" />
             <DetailPreview row={active} hasConflict={conflicts.has(active.id)} onClose={() => setActiveId(null)} />
           </div>
