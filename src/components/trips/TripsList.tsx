@@ -18,19 +18,39 @@ import {
   Car as CarIcon,
   CheckCheck,
   Flag,
+  MapPin,
+  Clock,
+  Wallet,
+  Receipt,
+  Globe2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mockTrips, type TripRow, type TripStatus } from "./mockTrips";
 
 /* ---------- helpers ---------- */
 
-const STATUS_META: Record<TripStatus, { label: string; rail: string; text: string }> = {
+const STATUS_META: Record<TripStatus, { label: string; rail: string; text: string; rowBg?: string; hideLabel?: boolean }> = {
   new:       { label: "new",       rail: "bg-primary",          text: "text-primary" },
   confirmed: { label: "confirmed", rail: "bg-warning",          text: "text-warning" },
   in_rent:   { label: "in_rent",   rail: "bg-success",          text: "text-success" },
-  finished:  { label: "finished",  rail: "bg-sky-400",          text: "text-sky-600" },
-  done:      { label: "done",      rail: "bg-muted-foreground", text: "text-muted-foreground" },
+  // finished — без текста, выделяем лёгкой пастелью на фоне строки
+  finished:  { label: "finished",  rail: "bg-sky-300",          text: "text-sky-700", rowBg: "bg-sky-50/70 hover:bg-sky-50", hideLabel: true },
+  done:      { label: "done",      rail: "bg-muted-foreground", text: "text-muted-foreground", rowBg: "bg-muted/30", hideLabel: true },
   reject:    { label: "reject",    rail: "bg-destructive",      text: "text-destructive" },
+};
+
+/* ---------- badge palette (color-coded so OA / D+ / R+ / H not blend) ---------- */
+const BADGE_STYLE: Record<string, string> = {
+  "D+": "border-emerald-300 bg-emerald-50 text-emerald-700",   // Deposit paid
+  "R+": "border-blue-300 bg-blue-50 text-blue-700",            // Rent paid
+  "OA": "border-amber-300 bg-amber-50 text-amber-700",         // Owner action
+  "H":  "border-violet-300 bg-violet-50 text-violet-700",      // Handover / hold
+};
+const BADGE_TITLE: Record<string, string> = {
+  "D+": "Deposit paid",
+  "R+": "Rent paid",
+  "OA": "Owner action",
+  "H":  "Handover",
 };
 
 function fmtDM(iso: string) {
@@ -40,6 +60,12 @@ function fmtDM(iso: string) {
 function fmtTime(iso: string) {
   const d = new Date(iso);
   return `${String(d.getHours()).padStart(2,"0")}h`;
+}
+function daysBetween(a: string, b: string) {
+  return Math.max(1, Math.round((+new Date(b) - +new Date(a)) / 86400000));
+}
+function fmtVnd(v: number) {
+  return new Intl.NumberFormat("en-US").format(v);
 }
 
 /* ---------- conflict detection: same car overlapping ---------- */
@@ -280,7 +306,11 @@ export default function TripsList() {
                       onTouchEnd={onPressEnd}
                       className={cn(
                         "group relative flex cursor-pointer items-stretch gap-1.5 pl-0 pr-2 transition-colors",
-                        isActive ? "bg-muted/60" : isSel ? "bg-primary-soft/30" : "hover:bg-muted/40",
+                        isActive
+                          ? "bg-muted/60"
+                          : isSel
+                          ? "bg-primary-soft/30"
+                          : meta.rowBg ?? "hover:bg-muted/40",
                       )}
                     >
                       {/* status rail */}
@@ -301,9 +331,11 @@ export default function TripsList() {
                         {/* row 1: id · status · client · meta */}
                         <div className="flex items-center gap-1.5 text-[11px] leading-tight">
                           <span className="shrink-0 font-bold tabular-nums text-muted-foreground">#{r.id}</span>
-                          <span className={cn("shrink-0 text-[10px] font-semibold lowercase", meta.text)}>
-                            {r.status.replace("_"," ")}
-                          </span>
+                          {!meta.hideLabel && (
+                            <span className={cn("shrink-0 text-[10px] font-semibold lowercase", meta.text)}>
+                              {r.status.replace("_"," ")}
+                            </span>
+                          )}
                           <span className="min-w-0 flex-1 truncate font-semibold text-foreground">
                             {r.flag && <Flag className="mr-1 inline h-2.5 w-2.5 fill-destructive text-destructive" />}
                             {r.client}
@@ -312,7 +344,16 @@ export default function TripsList() {
                             <span className="shrink-0 tabular-nums text-[10px] text-muted-foreground">{r.daysLeft}d</span>
                           )}
                           {r.badges?.map((b) => (
-                            <span key={b} className="shrink-0 rounded border border-border px-1 text-[9px] font-semibold text-muted-foreground">{b}</span>
+                            <span
+                              key={b}
+                              title={BADGE_TITLE[b] ?? b}
+                              className={cn(
+                                "shrink-0 rounded border px-1 text-[9px] font-bold tabular-nums",
+                                BADGE_STYLE[b] ?? "border-border text-muted-foreground",
+                              )}
+                            >
+                              {b}
+                            </span>
                           ))}
                           {hasConflict && (
                             <AlertTriangle className="h-3 w-3 shrink-0 text-destructive" />
@@ -366,66 +407,177 @@ export default function TripsList() {
 
 function DetailPreview({ row, hasConflict, onClose }: { row: TripRow; hasConflict: boolean; onClose?: () => void }) {
   const meta = STATUS_META[row.status];
+  const days = daysBetween(row.start, row.end);
+  const hasDeposit = row.badges?.includes("D+");
+  const hasRent = row.badges?.includes("R+");
+  const hasOA = row.badges?.includes("OA");
+  // Derive source heuristically from note (mimics edit page "source/voucher")
+  const source =
+    /vinrent website/i.test(row.note ?? "") ? "Website Booking"
+    : /getrentacar/i.test(row.note ?? "") ? "Getrentacar"
+    : /telegram/i.test(row.note ?? "") ? "Telegram"
+    : /paypal/i.test(row.note ?? "") ? "PayPal"
+    : "Direct";
+  const pricePerDay = row.priceVnd ? Math.round(row.priceVnd / Math.max(1, days)) : null;
+
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2 border-b px-3 py-2">
+    <div className="flex h-full flex-col bg-card/40">
+      {/* Sticky header */}
+      <div className="flex items-center gap-2 border-b bg-card px-3 py-2">
         <span className={cn("h-2 w-2 rounded-full", meta.rail)} />
-        <span className="text-sm font-bold">#{row.id}</span>
+        <span className="text-sm font-bold tabular-nums">#{row.id}</span>
         <span className={cn("text-[10px] font-bold uppercase tracking-wider", meta.text)}>
           {row.status.replace("_"," ")}
         </span>
+        {row.daysLeft != null && (
+          <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground">
+            {row.daysLeft}d left
+          </span>
+        )}
         {hasConflict && (
           <span className="inline-flex items-center gap-1 rounded bg-destructive-soft px-1.5 py-0.5 text-[10px] font-bold text-destructive">
             <AlertTriangle className="h-3 w-3" /> conflict
           </span>
         )}
-        <Link to="/" className="ml-auto text-[11px] font-semibold text-primary hover:underline">Open →</Link>
+        <Link to="/" className="ml-auto inline-flex items-center gap-1 rounded-md bg-primary px-2 py-1 text-[11px] font-semibold text-primary-foreground hover:opacity-90">
+          Open →
+        </Link>
         {onClose && (
           <button onClick={onClose} className="ml-1 rounded p-1 hover:bg-muted"><X className="h-3.5 w-3.5" /></button>
         )}
       </div>
-      <div className="flex-1 space-y-3 overflow-y-auto p-3 text-xs">
-        <div>
-          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Client</div>
-          <div className="text-sm font-semibold">{row.client}</div>
-        </div>
-        <div className="grid grid-cols-2 gap-2 rounded-lg border bg-background p-2">
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Pick up</div>
-            <div className="font-semibold tabular-nums">{fmtDM(row.start)} {fmtTime(row.start)}</div>
-            <div className="text-muted-foreground">{row.pickup}</div>
+
+      <div className="flex-1 space-y-2.5 overflow-y-auto p-3 text-xs">
+        {/* Customer */}
+        <div className="rounded-lg border bg-background p-2.5">
+          <div className="flex items-center justify-between">
+            <div className="min-w-0">
+              <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Client</div>
+              <div className="flex items-center gap-1.5 text-sm font-bold">
+                {row.flag && <Flag className="h-3 w-3 fill-destructive text-destructive" />}
+                {row.client}
+              </div>
+              <div className="mt-0.5 inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+                <Globe2 className="h-2.5 w-2.5" /> {source}
+              </div>
+            </div>
+            <div className="flex gap-1">
+              <button className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground hover:opacity-90" title="Call">
+                <Phone className="h-3 w-3" />
+              </button>
+              <button className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-success text-success-foreground hover:opacity-90" title="WhatsApp">
+                <MessageCircle className="h-3 w-3" />
+              </button>
+            </div>
           </div>
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Return</div>
-            <div className="font-semibold tabular-nums">{fmtDM(row.end)} {fmtTime(row.end)}</div>
-            <div className="text-muted-foreground">{row.dropoff}</div>
+        </div>
+
+        {/* Dates / route */}
+        <div className="rounded-lg border bg-background">
+          <div className="grid grid-cols-2 divide-x">
+            <div className="p-2.5">
+              <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Pick up</div>
+              <div className="font-bold tabular-nums">{fmtDM(row.start)} · {fmtTime(row.start)}</div>
+              <div className="mt-0.5 flex items-start gap-1 text-[10px] text-muted-foreground">
+                <MapPin className="mt-0.5 h-2.5 w-2.5 shrink-0" />
+                <span className="truncate">{row.pickup}</span>
+              </div>
+            </div>
+            <div className="p-2.5">
+              <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Return</div>
+              <div className="font-bold tabular-nums">{fmtDM(row.end)} · {fmtTime(row.end)}</div>
+              <div className="mt-0.5 flex items-start gap-1 text-[10px] text-muted-foreground">
+                <MapPin className="mt-0.5 h-2.5 w-2.5 shrink-0" />
+                <span className="truncate">{row.dropoff}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between border-t bg-muted/30 px-2.5 py-1 text-[10px] font-semibold text-muted-foreground">
+            <span className="inline-flex items-center gap-1"><Clock className="h-2.5 w-2.5" /> Duration</span>
+            <span className="tabular-nums text-foreground">{days} day{days > 1 ? "s" : ""}</span>
           </div>
         </div>
-        <div className="rounded-lg border bg-background p-2">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Car</div>
-          <div className="flex items-center gap-2">
+
+        {/* Car */}
+        <div className="rounded-lg border bg-background p-2.5">
+          <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Car</div>
+          <div className="mt-0.5 flex items-center gap-2">
             <CarIcon className={cn("h-3.5 w-3.5", row.carIcon === "ok" ? "text-success" : "text-muted-foreground")} />
-            <span className="font-semibold">{row.car || "—"}</span>
-            <span className="ml-auto tabular-nums text-muted-foreground">{row.plate}</span>
+            <span className="font-bold">{row.car || "—"}</span>
+            <span className="ml-auto rounded border bg-muted/40 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums">{row.plate || "no plate"}</span>
           </div>
         </div>
+
+        {/* Payment status — color rail */}
+        <div className="rounded-lg border bg-background p-2.5">
+          <div className="mb-1.5 flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+            <Wallet className="h-2.5 w-2.5" /> Payment
+          </div>
+          <div className="grid grid-cols-2 gap-1.5">
+            <div className={cn(
+              "flex items-center justify-between rounded-md border px-2 py-1.5 text-[11px] font-semibold",
+              hasDeposit ? "border-emerald-300 bg-emerald-50 text-emerald-700" : "border-dashed text-muted-foreground",
+            )}>
+              <span>Deposit</span>
+              <span>{hasDeposit ? "Paid" : "—"}</span>
+            </div>
+            <div className={cn(
+              "flex items-center justify-between rounded-md border px-2 py-1.5 text-[11px] font-semibold",
+              hasRent ? "border-blue-300 bg-blue-50 text-blue-700" : "border-dashed text-muted-foreground",
+            )}>
+              <span>Rent</span>
+              <span>{hasRent ? "Paid" : "Pending"}</span>
+            </div>
+            {hasOA && (
+              <div className="col-span-2 flex items-center justify-between rounded-md border border-amber-300 bg-amber-50 px-2 py-1.5 text-[11px] font-semibold text-amber-700">
+                <span>Owner action required</span>
+                <span>OA</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Price */}
+        {row.priceVnd ? (
+          <div className="rounded-lg border bg-background p-2.5">
+            <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+              <Receipt className="h-2.5 w-2.5" /> Total
+            </div>
+            <div className="mt-0.5 flex items-baseline justify-between">
+              <div className="text-base font-extrabold tabular-nums">{fmtVnd(row.priceVnd)}</div>
+              <div className="text-[10px] text-muted-foreground">VND</div>
+            </div>
+            {pricePerDay && (
+              <div className="mt-0.5 text-[10px] tabular-nums text-muted-foreground">
+                {fmtVnd(pricePerDay)} / day · {days} days
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed bg-background p-2.5 text-[10px] text-muted-foreground">
+            No price yet
+          </div>
+        )}
+
+        {/* Note */}
         {row.note && (
-          <div className="rounded-lg border border-warning/30 bg-warning-soft/60 p-2">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-warning">Note</div>
-            <div className="text-foreground">{row.note}</div>
+          <div className="rounded-lg border border-warning/30 bg-warning-soft/60 p-2.5">
+            <div className="text-[9px] font-bold uppercase tracking-wider text-warning">Note</div>
+            <div className="mt-0.5 text-[11px] text-foreground">{row.note}</div>
           </div>
         )}
-        {row.priceVnd && (
-          <div className="rounded-lg border bg-background p-2">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Price</div>
-            <div className="text-sm font-bold tabular-nums">{new Intl.NumberFormat("en-US").format(row.priceVnd)} VND</div>
+
+        {/* Conflict detail */}
+        {hasConflict && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive-soft p-2.5">
+            <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-destructive">
+              <AlertTriangle className="h-3 w-3" /> Schedule conflict
+            </div>
+            <div className="mt-0.5 text-[11px] text-destructive/80">
+              Car {row.plate} has overlapping bookings.
+            </div>
           </div>
         )}
-        <div className="grid grid-cols-3 gap-1.5">
-          <button className="inline-flex h-9 items-center justify-center gap-1 rounded-lg bg-primary text-xs font-semibold text-primary-foreground"><Phone className="h-3.5 w-3.5" /> Call</button>
-          <button className="inline-flex h-9 items-center justify-center gap-1 rounded-lg bg-success text-xs font-semibold text-success-foreground"><MessageCircle className="h-3.5 w-3.5" /> WhatsApp</button>
-          <button className="inline-flex h-9 items-center justify-center gap-1 rounded-lg border bg-card text-xs font-semibold text-destructive"><Trash2 className="h-3.5 w-3.5" /> Delete</button>
-        </div>
       </div>
     </div>
   );
