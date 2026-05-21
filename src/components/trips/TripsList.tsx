@@ -195,7 +195,40 @@ export default function TripsList() {
     <div className="min-h-screen bg-background">
       {/* Top toolbar */}
       <header className="sticky top-0 z-30 border-b bg-card/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center gap-1.5 px-2 py-1.5 sm:px-3">
+        <div className="mx-auto flex max-w-7xl items-center gap-1 px-2 py-1.5 sm:px-3">
+          {/* App menu (mobile + desktop) */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <button className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border bg-background text-foreground hover:bg-muted" title="Menu">
+                <Menu className="h-4 w-4" />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-64 p-3">
+              <div className="mb-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Navigation</div>
+              <nav className="space-y-1 text-sm">
+                <Link to="/trips" className="flex items-center gap-2 rounded-md bg-primary-soft px-2 py-2 font-semibold text-primary">
+                  <ListChecks className="h-4 w-4" /> Trips
+                </Link>
+                <Link to="/" className="flex items-center gap-2 rounded-md px-2 py-2 text-foreground hover:bg-muted">
+                  <FileText className="h-4 w-4" /> Trip editor
+                </Link>
+                <button className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-foreground hover:bg-muted">
+                  <CalendarDays className="h-4 w-4" /> Calendar
+                </button>
+                <button className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-foreground hover:bg-muted">
+                  <Sparkles className="h-4 w-4" /> Issues
+                </button>
+                <button className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-foreground hover:bg-muted">
+                  <RotateCw className="h-4 w-4" /> Refresh
+                </button>
+              </nav>
+            </SheetContent>
+          </Sheet>
+
+          <Link to="/" className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border bg-background text-muted-foreground hover:bg-muted" title="Open trip editor">
+            <HomeIcon className="h-4 w-4" />
+          </Link>
+
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <input
@@ -205,57 +238,74 @@ export default function TripsList() {
               className="h-8 w-full rounded-md border bg-background pl-7 pr-7 text-xs outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
             />
             {query && (
-              <button onClick={() => setQuery("")} className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:bg-muted">
+              <button onClick={() => setQuery("")} className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:bg-muted" title="Clear">
                 <X className="h-3 w-3" />
               </button>
             )}
           </div>
-          <Link to="/" className="hidden h-8 items-center gap-1 rounded-md border bg-background px-2 text-[11px] font-medium text-muted-foreground hover:bg-muted sm:inline-flex">
-            <HomeIcon className="h-3.5 w-3.5" /> Trip
-          </Link>
-          <button className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-[var(--shadow-sm)] hover:opacity-90">
-            <Plus className="h-4 w-4" />
+
+          <button className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-md border bg-background text-muted-foreground hover:bg-muted sm:inline-flex" title="Command palette (⌘K)">
+            <CommandIcon className="h-4 w-4" />
           </button>
-          <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border bg-background text-foreground hover:bg-muted">
+          <button className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border bg-background text-foreground hover:bg-muted" title="Calendar view">
             <CalendarDays className="h-4 w-4" />
+          </button>
+          <button className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-[var(--shadow-sm)] hover:opacity-90" title="New trip">
+            <Plus className="h-4 w-4" />
           </button>
         </div>
 
         {/* chips row */}
-        <div className="-mx-px flex items-center gap-1 overflow-x-auto border-t bg-background/60 px-2 py-1 sm:px-3">
+        <div className="-mx-px flex items-center gap-0.5 overflow-x-auto border-t bg-background/60 px-2 py-1 sm:px-3">
+          {/* Preset chips — icon-only */}
           {CHIPS.map((c) => {
             const Icon = c.icon;
-            const active = chip === c.key;
+            const isActive = chip === c.key;
             return (
               <button
                 key={c.key}
                 onClick={() => setChip(c.key)}
+                title={c.title}
+                aria-label={c.title}
                 className={cn(
-                  "inline-flex h-6 shrink-0 items-center gap-1 rounded-full border px-2 text-[10px] font-semibold uppercase tracking-wider transition-colors",
-                  active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:bg-muted",
-                  !active && c.tone,
+                  "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border transition-colors",
+                  isActive ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:bg-muted",
+                  !isActive && c.tone,
                 )}
               >
-                <Icon className="h-3 w-3" /> {c.label}
+                <Icon className="h-3.5 w-3.5" />
               </button>
             );
           })}
-          <span className="mx-1 h-3 w-px bg-border" />
-          {(["today","tomorrow","7d","all"] as RangeKey[]).map((k) => (
-            <button
-              key={k}
-              onClick={() => setRange(k)}
-              className={cn(
-                "h-6 shrink-0 rounded-full border px-2 text-[10px] font-semibold uppercase tracking-wider transition-colors",
-                range === k ? "border-foreground bg-foreground text-background" : "border-border bg-card hover:bg-muted",
-              )}
-            >
-              {k === "today" ? "Today" : k === "tomorrow" ? "Tomorrow" : k === "7d" ? "7D" : "All"}
-            </button>
-          ))}
-          <span className="mx-1 h-3 w-px bg-border" />
+
+          <span className="mx-1 h-4 w-px bg-border" />
+
+          {/* Date range — icon-only */}
+          {RANGES.map((r) => {
+            const Icon = r.icon;
+            const isActive = range === r.key;
+            return (
+              <button
+                key={r.key}
+                onClick={() => setRange(r.key)}
+                title={r.title}
+                aria-label={r.title}
+                className={cn(
+                  "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border transition-colors",
+                  isActive ? "border-foreground bg-foreground text-background" : "border-border bg-card hover:bg-muted",
+                )}
+              >
+                <Icon className="h-3.5 w-3.5" />
+              </button>
+            );
+          })}
+
+          <span className="mx-1 h-4 w-px bg-border" />
+
+          {/* Status filters — color dot only */}
           {(Object.keys(STATUS_META) as TripStatus[]).map((s) => {
             const on = statusFilter.has(s);
+            const m = STATUS_META[s];
             return (
               <button
                 key={s}
@@ -264,17 +314,19 @@ export default function TripsList() {
                   on ? n.delete(s) : n.add(s);
                   setStatusFilter(n);
                 }}
+                title={m.label}
+                aria-label={`Filter: ${m.label}`}
                 className={cn(
-                  "inline-flex h-6 shrink-0 items-center gap-1 rounded-full border px-2 text-[10px] font-semibold lowercase tracking-wide transition-colors",
-                  on ? "border-foreground bg-foreground text-background" : "border-border bg-card hover:bg-muted",
+                  "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border transition-colors",
+                  on ? "border-foreground bg-foreground" : "border-border bg-card hover:bg-muted",
                 )}
               >
-                <span className={cn("h-1.5 w-1.5 rounded-full", STATUS_META[s].rail)} />
-                {s.replace("_", " ")}
+                <span className={cn("h-2.5 w-2.5 rounded-full", m.dot)} />
               </button>
             );
           })}
-          <span className="ml-auto inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-muted px-2 text-[10px] font-bold tabular-nums text-muted-foreground">
+
+          <span className="ml-auto inline-flex h-7 shrink-0 items-center gap-1 rounded-md bg-muted px-2 text-[10px] font-bold tabular-nums text-muted-foreground" title="Visible trips">
             <Filter className="h-3 w-3" /> {filtered.length}
           </span>
         </div>
