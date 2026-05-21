@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Search,
   X,
@@ -24,20 +24,13 @@ import { mockTrips, type TripRow, type TripStatus } from "./mockTrips";
 
 /* ---------- helpers ---------- */
 
-const STATUS_META: Record<TripStatus, { label: string; rail: string; tint: string; text: string }> = {
-  new:       { label: "new",       rail: "bg-primary",     tint: "bg-primary-soft/40",  text: "text-primary" },
-  confirmed: { label: "confirmed", rail: "bg-warning",     tint: "bg-warning-soft/40",  text: "text-warning" },
-  in_rent:   { label: "in_rent",   rail: "bg-success",     tint: "bg-success-soft/30",  text: "text-success" },
-  finished:  { label: "finished",  rail: "bg-sky-400",     tint: "bg-sky-50",           text: "text-sky-600" },
-  done:      { label: "done",      rail: "bg-muted-foreground", tint: "bg-muted/40",    text: "text-muted-foreground" },
-  reject:    { label: "reject",    rail: "bg-destructive", tint: "bg-destructive-soft/40", text: "text-destructive" },
-};
-
-const BADGE_STYLE: Record<string, string> = {
-  "D+": "bg-orange-500 text-white",
-  "R+": "bg-rose-500 text-white",
-  "OA": "bg-amber-500 text-white",
-  "H":  "bg-violet-500 text-white",
+const STATUS_META: Record<TripStatus, { label: string; rail: string; text: string }> = {
+  new:       { label: "new",       rail: "bg-primary",          text: "text-primary" },
+  confirmed: { label: "confirmed", rail: "bg-warning",          text: "text-warning" },
+  in_rent:   { label: "in_rent",   rail: "bg-success",          text: "text-success" },
+  finished:  { label: "finished",  rail: "bg-sky-400",          text: "text-sky-600" },
+  done:      { label: "done",      rail: "bg-muted-foreground", text: "text-muted-foreground" },
+  reject:    { label: "reject",    rail: "bg-destructive",      text: "text-destructive" },
 };
 
 function fmtDM(iso: string) {
