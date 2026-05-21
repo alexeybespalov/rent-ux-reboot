@@ -20,15 +20,13 @@ import {
   Flag,
   MapPin,
   Clock,
-  Wallet,
-  Receipt,
   Globe2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mockTrips, type TripRow, type TripStatus } from "./mockTrips";
 import { mockTrip } from "@/components/trip/mockData";
 import { PriceCard } from "@/components/trip/PriceCard";
-import { ArrowDownLeft, ArrowUpRight, Check, AlertCircle, Mail, Languages, FileText } from "lucide-react";
+import { Mail, Languages } from "lucide-react";
 
 /* ---------- helpers ---------- */
 
@@ -430,10 +428,6 @@ function DetailPreview({ row, hasConflict, onClose }: { row: TripRow; hasConflic
     notes: row.note ?? "",
   };
 
-  const inUsd = trip.payments.filter((p) => p.direction === "in" && p.currency === "USD" && p.status === "Done").reduce((s, p) => s + p.amount, 0);
-  const inVnd = trip.payments.filter((p) => p.direction === "in" && p.currency === "VND" && p.status === "Done").reduce((s, p) => s + p.amount, 0);
-  const settled = trip.payments.reduce((s, p) => s + (p.delta || 0), 0);
-  const fmtN = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
   return (
     <div className="flex h-full flex-col bg-card/40">
