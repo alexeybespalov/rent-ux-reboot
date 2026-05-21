@@ -357,12 +357,10 @@ export default function TripsList() {
                           <MessageCircle className="h-3 w-3 text-success" />
                         </button>
                       </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-          ))}
+                </li>
+              );
+            })}
+          </ul>
         </main>
 
         {/* desktop master-detail preview */}
