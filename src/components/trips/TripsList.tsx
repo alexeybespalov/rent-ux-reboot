@@ -134,15 +134,9 @@ export default function TripsList() {
     });
   }, [query, chip, range, statusFilter, conflicts]);
 
-  /* group by start day */
-  const groups = useMemo(() => {
-    const map = new Map<string, TripRow[]>();
-    for (const r of filtered) {
-      const k = dayKey(r.start);
-      if (!map.has(k)) map.set(k, []);
-      map.get(k)!.push(r);
-    }
-    return Array.from(map.entries()).sort(([a],[b]) => a < b ? -1 : 1);
+  /* flat list sorted by start */
+  const sorted = useMemo(() => {
+    return [...filtered].sort((a, b) => +new Date(a.start) - +new Date(b.start));
   }, [filtered]);
 
   const toggleSelect = (id: number) => {
