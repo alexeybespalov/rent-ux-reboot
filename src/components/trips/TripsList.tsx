@@ -97,6 +97,7 @@ type RangeKey = "today" | "tomorrow" | "7d" | "all";
 /* ---------- main component ---------- */
 
 export default function TripsList() {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [chip, setChip] = useState<ChipKey>("home");
   const [range, setRange] = useState<RangeKey>("all");
