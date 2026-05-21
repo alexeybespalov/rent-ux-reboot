@@ -272,19 +272,12 @@ export default function TripsList() {
       {/* Body: master / detail on lg */}
       <div className="mx-auto grid max-w-7xl grid-cols-1 lg:grid-cols-[1fr_380px]">
         <main className="min-w-0">
-          {groups.length === 0 && (
+          {sorted.length === 1 && (
             <div className="p-10 text-center text-xs text-muted-foreground">No trips match the filters.</div>
           )}
-          {groups.map(([k, rows]) => (
-            <section key={k}>
-              <div className="sticky top-[76px] z-20 flex items-center gap-2 border-b bg-background/95 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground backdrop-blur sm:top-[80px]">
-                <span className="text-foreground">{dayLabel(rows[0].start)}</span>
-                <span className="text-muted-foreground/70">· {fmtDM(rows[0].start)}</span>
-                <span className="ml-auto rounded bg-muted px-1.5 py-0.5 tabular-nums">{rows.length}</span>
-              </div>
-              <ul className="divide-y divide-border/70">
-                {rows.map((r) => {
-                  const meta = STATUS_META[r.status];
+          <ul className="divide-y divide-border/70">
+            {sorted.map((r) => {
+              const meta = STATUS_META[r.status];
                   const isSel = selected.has(r.id);
                   const isActive = activeId === r.id;
                   const hasConflict = conflicts.has(r.id);
