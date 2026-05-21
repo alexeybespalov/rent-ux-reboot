@@ -310,7 +310,7 @@ export default function TripsList() {
                           ? "bg-muted/60"
                           : isSel
                           ? "bg-primary-soft/30"
-                          : meta.rowBg ?? "hover:bg-muted/40",
+                          : meta.rowBg,
                       )}
                     >
                       {/* status rail */}
@@ -331,11 +331,8 @@ export default function TripsList() {
                         {/* row 1: id · status · client · meta */}
                         <div className="flex items-center gap-1.5 text-[11px] leading-tight">
                           <span className="shrink-0 font-bold tabular-nums text-muted-foreground">#{r.id}</span>
-                          {!meta.hideLabel && (
-                            <span className={cn("shrink-0 text-[10px] font-semibold lowercase", meta.text)}>
-                              {r.status.replace("_"," ")}
-                            </span>
-                          )}
+                          {/* status — только цветная точка, без текста (цвет фона + рейл уже сигналят) */}
+                          <span title={meta.label} className={cn("h-1.5 w-1.5 shrink-0 rounded-full", meta.dot)} />
                           <span className="min-w-0 flex-1 truncate font-semibold text-foreground">
                             {r.flag && <Flag className="mr-1 inline h-2.5 w-2.5 fill-destructive text-destructive" />}
                             {r.client}
