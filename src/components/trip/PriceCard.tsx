@@ -4,7 +4,7 @@ import type { TripData } from "./types";
 
 const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
-export function PriceCard({ trip, sticky = true }: { trip: TripData; sticky?: boolean }) {
+export function PriceCard({ trip, sticky = true, showSave = true }: { trip: TripData; sticky?: boolean; showSave?: boolean }) {
   const { base, insurance, extras, afterHours, lateBooking, taxRate } = trip.price;
   const subtotal = base + insurance + extras + afterHours + lateBooking;
   const tax = Math.round(subtotal * taxRate);
@@ -47,11 +47,13 @@ export function PriceCard({ trip, sticky = true }: { trip: TripData; sticky?: bo
             <span className="text-base font-bold tabular-nums">{fmt(total)}</span>
           </div>
         </div>
-        <div className="border-t bg-muted/40 p-2">
-          <Button className="h-8 w-full gap-1.5 text-xs" size="sm">
-            <Save className="h-3.5 w-3.5" /> Save changes
-          </Button>
-        </div>
+        {showSave && (
+          <div className="border-t bg-muted/40 p-2">
+            <Button className="h-8 w-full gap-1.5 text-xs" size="sm">
+              <Save className="h-3.5 w-3.5" /> Save changes
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
