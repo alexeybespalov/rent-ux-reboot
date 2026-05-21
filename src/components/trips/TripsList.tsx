@@ -26,6 +26,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mockTrips, type TripRow, type TripStatus } from "./mockTrips";
+import { mockTrip } from "@/components/trip/mockData";
+import { PriceCard } from "@/components/trip/PriceCard";
+import { ArrowDownLeft, ArrowUpRight, Check, AlertCircle, Mail, Languages, FileText } from "lucide-react";
 
 /* ---------- helpers ---------- */
 
@@ -386,7 +389,7 @@ export default function TripsList() {
         </main>
 
         {/* desktop master-detail preview */}
-        <aside className="sticky top-[80px] hidden h-[calc(100vh-80px)] border-l bg-card/40 lg:block">
+        <aside className="sticky top-[80px] hidden h-[calc(100vh-80px)] border-l bg-card/40 lg:block overflow-hidden">
           {active ? <DetailPreview row={active} hasConflict={conflicts.has(active.id)} /> : (
             <div className="flex h-full items-center justify-center p-6 text-center text-xs text-muted-foreground">
               Pick a trip to preview it here.
