@@ -563,17 +563,6 @@ function DetailPreview({ row, hasConflict, onClose }: { row: TripRow; hasConflic
           </div>
         )}
 
-        {/* Conflict detail */}
-        {hasConflict && (
-          <div className="rounded-lg border border-destructive/30 bg-destructive-soft p-2.5">
-            <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-destructive">
-              <AlertTriangle className="h-3 w-3" /> Schedule conflict
-            </div>
-            <div className="mt-0.5 text-[11px] text-destructive/80">
-              Car {row.plate} has overlapping bookings.
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
