@@ -26,17 +26,20 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mockTrips, type TripRow, type TripStatus } from "./mockTrips";
+import { mockTrip } from "@/components/trip/mockData";
+import { PriceCard } from "@/components/trip/PriceCard";
+import { ArrowDownLeft, ArrowUpRight, Check, AlertCircle, Mail, Languages, FileText } from "lucide-react";
 
 /* ---------- helpers ---------- */
 
-const STATUS_META: Record<TripStatus, { label: string; rail: string; text: string; rowBg?: string; hideLabel?: boolean }> = {
-  new:       { label: "new",       rail: "bg-primary",          text: "text-primary" },
-  confirmed: { label: "confirmed", rail: "bg-warning",          text: "text-warning" },
-  in_rent:   { label: "in_rent",   rail: "bg-success",          text: "text-success" },
-  // finished — без текста, выделяем лёгкой пастелью на фоне строки
-  finished:  { label: "finished",  rail: "bg-sky-300",          text: "text-sky-700", rowBg: "bg-sky-50/70 hover:bg-sky-50", hideLabel: true },
-  done:      { label: "done",      rail: "bg-muted-foreground", text: "text-muted-foreground", rowBg: "bg-muted/30", hideLabel: true },
-  reject:    { label: "reject",    rail: "bg-destructive",      text: "text-destructive" },
+/* Все статусы — пастель + цветной рейл. Текст статуса не показываем (цвет = статус). */
+const STATUS_META: Record<TripStatus, { label: string; rail: string; text: string; rowBg: string; dot: string }> = {
+  new:       { label: "new",       rail: "bg-indigo-400",  text: "text-indigo-700",  rowBg: "bg-indigo-50/60 hover:bg-indigo-50",   dot: "bg-indigo-400" },
+  confirmed: { label: "confirmed", rail: "bg-amber-400",   text: "text-amber-700",   rowBg: "bg-amber-50/60 hover:bg-amber-50",     dot: "bg-amber-400" },
+  in_rent:   { label: "in rent",   rail: "bg-emerald-500", text: "text-emerald-700", rowBg: "bg-emerald-50/60 hover:bg-emerald-50", dot: "bg-emerald-500" },
+  finished:  { label: "finished",  rail: "bg-sky-400",     text: "text-sky-700",     rowBg: "bg-sky-50/60 hover:bg-sky-50",         dot: "bg-sky-400" },
+  done:      { label: "done",      rail: "bg-slate-400",   text: "text-slate-700",   rowBg: "bg-slate-50/70 hover:bg-slate-100/60", dot: "bg-slate-400" },
+  reject:    { label: "reject",    rail: "bg-rose-400",    text: "text-rose-700",    rowBg: "bg-rose-50/60 hover:bg-rose-50",       dot: "bg-rose-400" },
 };
 
 /* ---------- badge palette (color-coded so OA / D+ / R+ / H not blend) ---------- */
@@ -310,7 +313,7 @@ export default function TripsList() {
                           ? "bg-muted/60"
                           : isSel
                           ? "bg-primary-soft/30"
-                          : meta.rowBg ?? "hover:bg-muted/40",
+                          : meta.rowBg,
                       )}
                     >
                       {/* status rail */}
@@ -331,11 +334,8 @@ export default function TripsList() {
                         {/* row 1: id · status · client · meta */}
                         <div className="flex items-center gap-1.5 text-[11px] leading-tight">
                           <span className="shrink-0 font-bold tabular-nums text-muted-foreground">#{r.id}</span>
-                          {!meta.hideLabel && (
-                            <span className={cn("shrink-0 text-[10px] font-semibold lowercase", meta.text)}>
-                              {r.status.replace("_"," ")}
-                            </span>
-                          )}
+                          {/* status — только цветная точка, без текста (цвет фона + рейл уже сигналят) */}
+                          <span title={meta.label} className={cn("h-1.5 w-1.5 shrink-0 rounded-full", meta.dot)} />
                           <span className="min-w-0 flex-1 truncate font-semibold text-foreground">
                             {r.flag && <Flag className="mr-1 inline h-2.5 w-2.5 fill-destructive text-destructive" />}
                             {r.client}
@@ -389,7 +389,7 @@ export default function TripsList() {
         </main>
 
         {/* desktop master-detail preview */}
-        <aside className="sticky top-[80px] hidden h-[calc(100vh-80px)] border-l bg-card/40 lg:block">
+        <aside className="sticky top-[80px] hidden h-[calc(100vh-80px)] border-l bg-card/40 lg:block overflow-hidden">
           {active ? <DetailPreview row={active} hasConflict={conflicts.has(active.id)} /> : (
             <div className="flex h-full items-center justify-center p-6 text-center text-xs text-muted-foreground">
               Pick a trip to preview it here.
@@ -408,36 +408,52 @@ export default function TripsList() {
 function DetailPreview({ row, hasConflict, onClose }: { row: TripRow; hasConflict: boolean; onClose?: () => void }) {
   const meta = STATUS_META[row.status];
   const days = daysBetween(row.start, row.end);
-  const hasDeposit = row.badges?.includes("D+");
-  const hasRent = row.badges?.includes("R+");
   const hasOA = row.badges?.includes("OA");
-  // Derive source heuristically from note (mimics edit page "source/voucher")
   const source =
     /vinrent website/i.test(row.note ?? "") ? "Website Booking"
     : /getrentacar/i.test(row.note ?? "") ? "Getrentacar"
     : /telegram/i.test(row.note ?? "") ? "Telegram"
     : /paypal/i.test(row.note ?? "") ? "PayPal"
     : "Direct";
-  const pricePerDay = row.priceVnd ? Math.round(row.priceVnd / Math.max(1, days)) : null;
+
+  // Merge row data into the rich edit model so the panel mirrors the edit page
+  const trip = {
+    ...mockTrip,
+    id: row.id,
+    voucher: `VR-${String(row.id).padStart(5, "0")}`,
+    source,
+    customer: { ...mockTrip.customer, name: row.client },
+    dates: { start: row.start, end: row.end, days },
+    pickup: row.pickup,
+    dropoff: row.dropoff,
+    car: { name: row.car || mockTrip.car.name, plate: row.plate || mockTrip.car.plate },
+    notes: row.note ?? "",
+  };
+
+  const inUsd = trip.payments.filter((p) => p.direction === "in" && p.currency === "USD" && p.status === "Done").reduce((s, p) => s + p.amount, 0);
+  const inVnd = trip.payments.filter((p) => p.direction === "in" && p.currency === "VND" && p.status === "Done").reduce((s, p) => s + p.amount, 0);
+  const settled = trip.payments.reduce((s, p) => s + (p.delta || 0), 0);
+  const fmtN = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
   return (
     <div className="flex h-full flex-col bg-card/40">
       {/* Sticky header */}
       <div className="flex items-center gap-2 border-b bg-card px-3 py-2">
-        <span className={cn("h-2 w-2 rounded-full", meta.rail)} />
+        <span className={cn("h-2 w-2 rounded-full", meta.dot)} />
         <span className="text-sm font-bold tabular-nums">#{row.id}</span>
-        <span className={cn("text-[10px] font-bold uppercase tracking-wider", meta.text)}>
-          {row.status.replace("_"," ")}
+        <span className={cn("rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider", meta.rowBg, meta.text)}>
+          {meta.label}
+        </span>
+        <span className="hidden truncate rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground xl:inline">
+          {trip.voucher}
         </span>
         {row.daysLeft != null && (
           <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground">
-            {row.daysLeft}d left
+            {row.daysLeft}d
           </span>
         )}
         {hasConflict && (
-          <span className="inline-flex items-center gap-1 rounded bg-destructive-soft px-1.5 py-0.5 text-[10px] font-bold text-destructive">
-            <AlertTriangle className="h-3 w-3" /> conflict
-          </span>
+          <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
         )}
         <Link to="/" className="ml-auto inline-flex items-center gap-1 rounded-md bg-primary px-2 py-1 text-[11px] font-semibold text-primary-foreground hover:opacity-90">
           Open →
@@ -447,21 +463,36 @@ function DetailPreview({ row, hasConflict, onClose }: { row: TripRow; hasConflic
         )}
       </div>
 
+      {/* Issues strip from edit model */}
+      {trip.issues.total > 0 && (
+        <div className="flex items-center gap-1.5 border-b bg-destructive-soft px-3 py-1 text-[11px]">
+          <AlertTriangle className="h-3 w-3 text-destructive" />
+          <span className="font-semibold text-destructive">{trip.issues.total} issue{trip.issues.total > 1 ? "s" : ""}</span>
+          <span className="text-destructive/80">({trip.issues.critical} critical)</span>
+          {trip.issues.tags.map((t) => (
+            <span key={t} className="ml-auto rounded bg-destructive px-1.5 py-0 text-[9px] font-bold uppercase tracking-wide text-destructive-foreground">{t}</span>
+          ))}
+        </div>
+      )}
+
       <div className="flex-1 space-y-2.5 overflow-y-auto p-3 text-xs">
         {/* Customer */}
         <div className="rounded-lg border bg-background p-2.5">
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Client</div>
               <div className="flex items-center gap-1.5 text-sm font-bold">
                 {row.flag && <Flag className="h-3 w-3 fill-destructive text-destructive" />}
-                {row.client}
+                {trip.customer.name}
               </div>
-              <div className="mt-0.5 inline-flex items-center gap-1 text-[10px] text-muted-foreground">
-                <Globe2 className="h-2.5 w-2.5" /> {source}
+              <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground">
+                <span className="inline-flex items-center gap-1"><Phone className="h-2.5 w-2.5" /> {trip.customer.phone}</span>
+                <span className="inline-flex items-center gap-1"><Mail className="h-2.5 w-2.5" /> {trip.customer.email}</span>
+                <span className="inline-flex items-center gap-1"><Languages className="h-2.5 w-2.5" /> {trip.customer.lang}</span>
+                <span className="inline-flex items-center gap-1"><Globe2 className="h-2.5 w-2.5" /> {source}</span>
               </div>
             </div>
-            <div className="flex gap-1">
+            <div className="flex shrink-0 gap-1">
               <button className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground hover:opacity-90" title="Call">
                 <Phone className="h-3 w-3" />
               </button>
@@ -503,61 +534,86 @@ function DetailPreview({ row, hasConflict, onClose }: { row: TripRow; hasConflic
           <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Car</div>
           <div className="mt-0.5 flex items-center gap-2">
             <CarIcon className={cn("h-3.5 w-3.5", row.carIcon === "ok" ? "text-success" : "text-muted-foreground")} />
-            <span className="font-bold">{row.car || "—"}</span>
-            <span className="ml-auto rounded border bg-muted/40 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums">{row.plate || "no plate"}</span>
+            <span className="font-bold">{trip.car.name}</span>
+            <span className="ml-auto rounded border bg-muted/40 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums">{trip.car.plate || "no plate"}</span>
           </div>
         </div>
 
-        {/* Payment status — color rail */}
+        {/* Payments summary (from edit model) */}
         <div className="rounded-lg border bg-background p-2.5">
-          <div className="mb-1.5 flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-            <Wallet className="h-2.5 w-2.5" /> Payment
-          </div>
-          <div className="grid grid-cols-2 gap-1.5">
-            <div className={cn(
-              "flex items-center justify-between rounded-md border px-2 py-1.5 text-[11px] font-semibold",
-              hasDeposit ? "border-emerald-300 bg-emerald-50 text-emerald-700" : "border-dashed text-muted-foreground",
-            )}>
-              <span>Deposit</span>
-              <span>{hasDeposit ? "Paid" : "—"}</span>
-            </div>
-            <div className={cn(
-              "flex items-center justify-between rounded-md border px-2 py-1.5 text-[11px] font-semibold",
-              hasRent ? "border-blue-300 bg-blue-50 text-blue-700" : "border-dashed text-muted-foreground",
-            )}>
-              <span>Rent</span>
-              <span>{hasRent ? "Paid" : "Pending"}</span>
+          <div className="mb-1.5 flex items-center justify-between">
+            <div className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+              <Wallet className="h-2.5 w-2.5" /> Payments
             </div>
             {hasOA && (
-              <div className="col-span-2 flex items-center justify-between rounded-md border border-amber-300 bg-amber-50 px-2 py-1.5 text-[11px] font-semibold text-amber-700">
-                <span>Owner action required</span>
-                <span>OA</span>
-              </div>
+              <span className="rounded border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-700">
+                OA · owner action
+              </span>
             )}
+          </div>
+          <div className="mb-2 grid grid-cols-3 gap-1">
+            <div className="rounded-md border bg-success-soft/40 px-2 py-1">
+              <div className="text-[9px] font-bold uppercase tracking-wider text-success">In USD</div>
+              <div className="text-[11px] font-bold tabular-nums">{fmtN(inUsd)}</div>
+            </div>
+            <div className="rounded-md border bg-success-soft/40 px-2 py-1">
+              <div className="text-[9px] font-bold uppercase tracking-wider text-success">In VND</div>
+              <div className="text-[11px] font-bold tabular-nums">{fmtN(inVnd)}</div>
+            </div>
+            <div className="rounded-md border bg-muted/40 px-2 py-1">
+              <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Δ VND</div>
+              <div className="text-[11px] font-bold tabular-nums text-success">{fmtN(settled)}</div>
+            </div>
+          </div>
+          <div className="divide-y overflow-hidden rounded-md border bg-card">
+            {trip.payments.map((p) => (
+              <div key={p.id} className="flex items-center gap-1.5 px-2 py-1.5">
+                <div className={cn(
+                  "flex h-5 w-5 shrink-0 items-center justify-center rounded-full",
+                  p.direction === "in" ? "bg-success-soft text-success" : "bg-destructive-soft text-destructive",
+                )}>
+                  {p.direction === "in" ? <ArrowDownLeft className="h-2.5 w-2.5" /> : <ArrowUpRight className="h-2.5 w-2.5" />}
+                </div>
+                <span className={cn(
+                  "shrink-0 rounded px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider",
+                  p.type === "RENT" && "bg-primary-soft text-primary",
+                  p.type === "DEPOSIT" && "bg-success-soft text-success",
+                  p.type === "EXTRA" && "bg-warning-soft text-warning",
+                )}>{p.type}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[11px] font-medium">{p.party}</div>
+                  <div className="truncate text-[9.5px] text-muted-foreground">{p.date} · {p.method}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[11px] font-bold tabular-nums">{fmtN(p.amount)} {p.currency}</div>
+                  <div className={cn(
+                    "inline-flex items-center gap-0.5 text-[9px] font-semibold",
+                    p.status === "Done" ? "text-success" : "text-warning",
+                  )}>
+                    {p.status === "Done" ? <Check className="h-2 w-2" /> : <AlertCircle className="h-2 w-2" />}
+                    {p.status}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Price */}
-        {row.priceVnd ? (
-          <div className="rounded-lg border bg-background p-2.5">
-            <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-              <Receipt className="h-2.5 w-2.5" /> Total
-            </div>
-            <div className="mt-0.5 flex items-baseline justify-between">
-              <div className="text-base font-extrabold tabular-nums">{fmtVnd(row.priceVnd)}</div>
-              <div className="text-[10px] text-muted-foreground">VND</div>
-            </div>
-            {pricePerDay && (
-              <div className="mt-0.5 text-[10px] tabular-nums text-muted-foreground">
-                {fmtVnd(pricePerDay)} / day · {days} days
-              </div>
-            )}
+        {/* Live Price card from edit page */}
+        <PriceCard trip={trip} sticky={false} />
+
+        {/* Terms */}
+        <div className="rounded-lg border bg-background p-2.5">
+          <div className="mb-1 flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+            <FileText className="h-2.5 w-2.5" /> Terms
           </div>
-        ) : (
-          <div className="rounded-lg border border-dashed bg-background p-2.5 text-[10px] text-muted-foreground">
-            No price yet
+          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10.5px]">
+            <div className="text-muted-foreground">Mileage</div><div className="text-right font-semibold">{trip.terms.mileage}</div>
+            <div className="text-muted-foreground">Free cancel</div><div className="text-right font-semibold">{trip.terms.freeCancel}</div>
+            <div className="text-muted-foreground">Driving rules</div><div className="text-right font-semibold">{trip.terms.drivingRules}</div>
+            <div className="text-muted-foreground">Currency</div><div className="text-right font-semibold">{trip.terms.currency}</div>
           </div>
-        )}
+        </div>
 
         {/* Note */}
         {row.note && (
