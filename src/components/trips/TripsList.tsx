@@ -272,7 +272,7 @@ export default function TripsList() {
       {/* Body: master / detail on lg */}
       <div className="mx-auto grid max-w-7xl grid-cols-1 lg:grid-cols-[1fr_380px]">
         <main className="min-w-0">
-          {sorted.length === 1 && (
+          {sorted.length === 0 && (
             <div className="p-10 text-center text-xs text-muted-foreground">No trips match the filters.</div>
           )}
           <ul className="divide-y divide-border/70">
