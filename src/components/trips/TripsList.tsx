@@ -438,26 +438,10 @@ function DetailPreview({ row, hasConflict, onClose }: { row: TripRow; hasConflic
         <span className={cn("rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider", meta.rowBg, meta.text)}>
           {meta.label}
         </span>
-        {/* signals stack — right next to trip id */}
         {row.daysLeft != null && (
           <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground">
-            {row.daysLeft}d
+            {row.daysLeft}d left
           </span>
-        )}
-        {trip.issues.total > 0 && (
-          <span className="inline-flex items-center gap-1 rounded bg-destructive-soft px-1.5 py-0.5 text-[10px] font-bold text-destructive" title={trip.issues.tags.join(", ")}>
-            <AlertTriangle className="h-3 w-3" />
-            {trip.issues.total} issue{trip.issues.total > 1 ? "s" : ""}
-            {trip.issues.critical > 0 && <span className="opacity-80">· {trip.issues.critical} crit</span>}
-          </span>
-        )}
-        {hasConflict && (
-          <span className="inline-flex items-center gap-1 rounded bg-destructive-soft px-1.5 py-0.5 text-[10px] font-bold text-destructive">
-            <AlertTriangle className="h-3 w-3" /> conflict
-          </span>
-        )}
-        {hasOA && (
-          <span className="rounded border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">OA</span>
         )}
         <span className="hidden truncate rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground xl:inline">
           {trip.voucher}
@@ -469,6 +453,40 @@ function DetailPreview({ row, hasConflict, onClose }: { row: TripRow; hasConflic
           <button onClick={onClose} className="ml-1 rounded p-1 hover:bg-muted"><X className="h-3.5 w-3.5" /></button>
         )}
       </div>
+
+      {/* Signals strip — verbose, just under the header */}
+      {(trip.issues.total > 0 || hasConflict || hasOA) && (
+        <div className="flex flex-wrap items-center gap-1.5 border-b bg-muted/30 px-3 py-1.5">
+          {trip.issues.total > 0 && (
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-destructive/30 bg-destructive-soft px-2 py-1 text-[11px] font-semibold text-destructive">
+              <AlertTriangle className="h-3 w-3" />
+              <span>
+                {trip.issues.total} issue{trip.issues.total > 1 ? "s" : ""}
+                {trip.issues.critical > 0 && <span className="font-normal opacity-80"> · {trip.issues.critical} critical</span>}
+              </span>
+              {trip.issues.tags.length > 0 && (
+                <span className="rounded bg-destructive px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-destructive-foreground">
+                  {trip.issues.tags.join(" · ")}
+                </span>
+              )}
+            </span>
+          )}
+          {hasConflict && (
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-destructive/30 bg-destructive-soft px-2 py-1 text-[11px] font-semibold text-destructive">
+              <AlertTriangle className="h-3 w-3" />
+              Schedule conflict
+              <span className="font-normal opacity-80">· car {row.plate} double-booked</span>
+            </span>
+          )}
+          {hasOA && (
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-700">
+              <span className="rounded bg-amber-200 px-1 text-[9px] font-bold">OA</span>
+              Owner action required
+              <span className="font-normal opacity-80">· deposit/return pending with owner</span>
+            </span>
+          )}
+        </div>
+      )}
 
       <div className="flex-1 space-y-2.5 overflow-y-auto p-3 text-xs">
         {/* Customer */}
