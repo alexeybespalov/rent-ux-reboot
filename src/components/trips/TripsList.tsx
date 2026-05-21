@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Search,
   X,
@@ -24,20 +24,13 @@ import { mockTrips, type TripRow, type TripStatus } from "./mockTrips";
 
 /* ---------- helpers ---------- */
 
-const STATUS_META: Record<TripStatus, { label: string; rail: string; tint: string; text: string }> = {
-  new:       { label: "new",       rail: "bg-primary",     tint: "bg-primary-soft/40",  text: "text-primary" },
-  confirmed: { label: "confirmed", rail: "bg-warning",     tint: "bg-warning-soft/40",  text: "text-warning" },
-  in_rent:   { label: "in_rent",   rail: "bg-success",     tint: "bg-success-soft/30",  text: "text-success" },
-  finished:  { label: "finished",  rail: "bg-sky-400",     tint: "bg-sky-50",           text: "text-sky-600" },
-  done:      { label: "done",      rail: "bg-muted-foreground", tint: "bg-muted/40",    text: "text-muted-foreground" },
-  reject:    { label: "reject",    rail: "bg-destructive", tint: "bg-destructive-soft/40", text: "text-destructive" },
-};
-
-const BADGE_STYLE: Record<string, string> = {
-  "D+": "bg-orange-500 text-white",
-  "R+": "bg-rose-500 text-white",
-  "OA": "bg-amber-500 text-white",
-  "H":  "bg-violet-500 text-white",
+const STATUS_META: Record<TripStatus, { label: string; rail: string; text: string }> = {
+  new:       { label: "new",       rail: "bg-primary",          text: "text-primary" },
+  confirmed: { label: "confirmed", rail: "bg-warning",          text: "text-warning" },
+  in_rent:   { label: "in_rent",   rail: "bg-success",          text: "text-success" },
+  finished:  { label: "finished",  rail: "bg-sky-400",          text: "text-sky-600" },
+  done:      { label: "done",      rail: "bg-muted-foreground", text: "text-muted-foreground" },
+  reject:    { label: "reject",    rail: "bg-destructive",      text: "text-destructive" },
 };
 
 function fmtDM(iso: string) {
@@ -104,6 +97,7 @@ type RangeKey = "today" | "tomorrow" | "7d" | "all";
 /* ---------- main component ---------- */
 
 export default function TripsList() {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [chip, setChip] = useState<ChipKey>("home");
   const [range, setRange] = useState<RangeKey>("all");
@@ -305,7 +299,8 @@ export default function TripsList() {
                       key={r.id}
                       onClick={() => {
                         if (selectMode) toggleSelect(r.id);
-                        else setActiveId(r.id);
+                        else if (window.matchMedia("(min-width: 1024px)").matches) setActiveId(r.id);
+                        else navigate("/");
                       }}
                       onMouseDown={() => onPressStart(r.id)}
                       onMouseUp={onPressEnd}
@@ -313,12 +308,12 @@ export default function TripsList() {
                       onTouchStart={() => onPressStart(r.id)}
                       onTouchEnd={onPressEnd}
                       className={cn(
-                        "group relative flex cursor-pointer items-stretch gap-2 pl-0 pr-2 transition-colors",
-                        isActive ? "bg-primary-soft/60" : isSel ? "bg-primary-soft/40" : "hover:bg-muted/50",
+                        "group relative flex cursor-pointer items-stretch gap-1.5 pl-0 pr-2 transition-colors",
+                        isActive ? "bg-muted/60" : isSel ? "bg-primary-soft/30" : "hover:bg-muted/40",
                       )}
                     >
                       {/* status rail */}
-                      <span className={cn("w-[3px] shrink-0", meta.rail)} />
+                      <span className={cn("w-[2px] shrink-0", meta.rail)} />
 
                       {/* checkbox in select mode */}
                       {selectMode && (
@@ -330,47 +325,40 @@ export default function TripsList() {
                         </button>
                       )}
 
-                      {/* main content — ultra-dense */}
-                      <div className="min-w-0 flex-1 py-1">
-                        {/* row 1 */}
+                      {/* main content — ultra-dense, monochrome */}
+                      <div className="min-w-0 flex-1 py-[5px]">
+                        {/* row 1: id · status · client · meta */}
                         <div className="flex items-center gap-1.5 text-[11px] leading-tight">
-                          <span className="shrink-0 font-bold tabular-nums">#{r.id}</span>
-                          <span className={cn("shrink-0 rounded px-1 text-[9px] font-bold uppercase tracking-wider", meta.tint, meta.text)}>
+                          <span className="shrink-0 font-bold tabular-nums text-muted-foreground">#{r.id}</span>
+                          <span className={cn("shrink-0 text-[10px] font-semibold lowercase", meta.text)}>
                             {r.status.replace("_"," ")}
                           </span>
+                          <span className="min-w-0 flex-1 truncate font-semibold text-foreground">
+                            {r.flag && <Flag className="mr-1 inline h-2.5 w-2.5 fill-destructive text-destructive" />}
+                            {r.client}
+                          </span>
                           {r.daysLeft != null && (
-                            <span className="shrink-0 rounded bg-muted px-1 text-[9px] font-bold tabular-nums text-muted-foreground">({r.daysLeft})</span>
+                            <span className="shrink-0 tabular-nums text-[10px] text-muted-foreground">{r.daysLeft}d</span>
                           )}
                           {r.badges?.map((b) => (
-                            <span key={b} className={cn("shrink-0 rounded px-1 text-[9px] font-bold", BADGE_STYLE[b] ?? "bg-muted text-foreground")}>{b}</span>
+                            <span key={b} className="shrink-0 rounded border border-border px-1 text-[9px] font-semibold text-muted-foreground">{b}</span>
                           ))}
                           {hasConflict && (
-                            <span title="Car overlap conflict" className="shrink-0 inline-flex items-center gap-0.5 rounded bg-destructive-soft px-1 text-[9px] font-bold text-destructive">
-                              <AlertTriangle className="h-2.5 w-2.5" /> conflict
-                            </span>
+                            <AlertTriangle className="h-3 w-3 shrink-0 text-destructive" />
                           )}
-                          <span className="ml-auto shrink-0 truncate font-semibold text-foreground">{r.client}</span>
                         </div>
-                        {/* row 2 */}
+                        {/* row 2: dates · car */}
                         <div className="mt-0.5 flex items-center gap-1.5 text-[10.5px] leading-tight text-muted-foreground">
-                          <span className="shrink-0 tabular-nums">{fmtDM(r.start)} {fmtTime(r.start)}</span>
-                          <span className="shrink-0">→</span>
-                          <span className="shrink-0 font-semibold tabular-nums text-foreground">{fmtDM(r.end)} {fmtTime(r.end)}</span>
-                          <span className="mx-1 hidden h-3 w-px bg-border sm:inline" />
-                          <span className="hidden truncate sm:inline">{r.pickup}{r.dropoff && r.pickup !== r.dropoff ? ` → ${r.dropoff}` : ""}</span>
-                          <span className="ml-auto flex min-w-0 shrink items-center gap-1 truncate">
-                            {r.flag && <Flag className="h-2.5 w-2.5 shrink-0 fill-destructive text-destructive" />}
-                            <CarIcon className={cn("h-2.5 w-2.5 shrink-0", r.carIcon === "ok" ? "text-success" : "text-muted-foreground")} />
-                            <span className="truncate text-foreground">{r.car}</span>
-                            <span className="shrink-0 tabular-nums">{r.plate}</span>
+                          <span className="shrink-0 tabular-nums">{fmtDM(r.start)}–{fmtDM(r.end)}</span>
+                          <span className="shrink-0 text-muted-foreground/60">·</span>
+                          <span className="min-w-0 flex-1 truncate">
+                            <CarIcon className={cn("mr-1 inline h-2.5 w-2.5", r.carIcon === "ok" ? "text-success" : "text-muted-foreground/60")} />
+                            {r.car || "—"} <span className="tabular-nums text-muted-foreground/80">{r.plate}</span>
                           </span>
+                          {r.note && (
+                            <span className="ml-1 shrink truncate max-w-[40%] text-warning/80">{r.note}</span>
+                          )}
                         </div>
-                        {/* row 3 note */}
-                        {r.note && (
-                          <div className="mt-0.5 truncate text-[10.5px] leading-tight text-warning/90">
-                            <span className="mr-1">📝</span>{r.note}
-                          </div>
-                        )}
                       </div>
 
                       {/* quick actions desktop hover */}
@@ -401,15 +389,6 @@ export default function TripsList() {
       </div>
 
       {/* mobile detail bottom-sheet */}
-      {active && (
-        <div className="lg:hidden">
-          <div onClick={() => setActiveId(null)} className="fixed inset-0 z-40 bg-black/40 animate-fade-in" />
-          <div className="fixed inset-x-0 bottom-0 z-50 max-h-[80vh] overflow-y-auto rounded-t-2xl border-t bg-card pb-[max(env(safe-area-inset-bottom),0.75rem)] shadow-[var(--shadow-lg)] animate-fade-in">
-            <div className="mx-auto my-2 h-1 w-10 rounded-full bg-muted" />
-            <DetailPreview row={active} hasConflict={conflicts.has(active.id)} onClose={() => setActiveId(null)} />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -423,7 +402,7 @@ function DetailPreview({ row, hasConflict, onClose }: { row: TripRow; hasConflic
       <div className="flex items-center gap-2 border-b px-3 py-2">
         <span className={cn("h-2 w-2 rounded-full", meta.rail)} />
         <span className="text-sm font-bold">#{row.id}</span>
-        <span className={cn("rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider", meta.tint, meta.text)}>
+        <span className={cn("text-[10px] font-bold uppercase tracking-wider", meta.text)}>
           {row.status.replace("_"," ")}
         </span>
         {hasConflict && (
