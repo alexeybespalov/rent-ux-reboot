@@ -437,9 +437,11 @@ export default function TripsList() {
                             {r.car || "—"} <span className="tabular-nums text-muted-foreground/80">{r.plate}</span>
                           </span>
                           {r.note && (
-                            <span className="ml-1 shrink truncate max-w-[40%] text-warning/80">{r.note}</span>
+                            <span className="ml-1 hidden shrink truncate max-w-[30%] text-warning/80 sm:inline">{r.note}</span>
                           )}
                         </div>
+                        {/* row 3: pickup → dropoff */}
+                        <RouteLine pickup={r.pickup} dropoff={r.dropoff} />
                       </div>
 
                       {/* quick actions desktop hover */}
