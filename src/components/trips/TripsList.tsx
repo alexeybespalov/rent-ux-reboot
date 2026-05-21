@@ -21,6 +21,10 @@ import {
   MapPin,
   Clock,
   Globe2,
+  ArrowRight,
+  Plane,
+  Building2,
+  Anchor,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mockTrips, type TripRow, type TripStatus } from "./mockTrips";
@@ -80,6 +84,53 @@ function daysBetween(a: string, b: string) {
 }
 function fmtVnd(v: number) {
   return new Intl.NumberFormat("en-US").format(v);
+}
+
+/* ---------- pickup / dropoff visual helpers ---------- */
+/* Tone per location keyword — pastel chip, so locations don't blend. */
+function locTone(loc: string): { bg: string; text: string; icon: any; short: string } {
+  const s = (loc || "").toLowerCase();
+  if (!loc || loc === "—") return { bg: "bg-muted", text: "text-muted-foreground", icon: MapPin, short: "—" };
+  if (s.includes("cam ranh"))   return { bg: "bg-sky-100",     text: "text-sky-700",     icon: Plane,     short: "Cam Ranh" };
+  if (s.includes("tan son"))    return { bg: "bg-sky-100",     text: "text-sky-700",     icon: Plane,     short: "TSN" };
+  if (s.includes("airport"))    return { bg: "bg-sky-100",     text: "text-sky-700",     icon: Plane,     short: loc };
+  if (s.includes("vinrent"))    return { bg: "bg-violet-100",  text: "text-violet-700",  icon: Building2, short: "VinRent" };
+  if (s.includes("nha trang"))  return { bg: "bg-emerald-100", text: "text-emerald-700", icon: Anchor,    short: "Nha Trang" };
+  return { bg: "bg-amber-100", text: "text-amber-700", icon: MapPin, short: loc };
+}
+
+function LocChip({ loc }: { loc: string }) {
+  const t = locTone(loc);
+  const Icon = t.icon;
+  return (
+    <span
+      title={loc || "—"}
+      className={cn(
+        "inline-flex min-w-0 max-w-[44%] shrink items-center gap-1 rounded px-1.5 py-[1px] text-[10px] font-semibold leading-none",
+        t.bg, t.text,
+      )}
+    >
+      <Icon className="h-2.5 w-2.5 shrink-0" />
+      <span className="truncate">{t.short}</span>
+    </span>
+  );
+}
+
+function RouteLine({ pickup, dropoff }: { pickup: string; dropoff: string }) {
+  const same = pickup && dropoff && pickup.trim().toLowerCase() === dropoff.trim().toLowerCase();
+  return (
+    <div className="mt-0.5 flex items-center gap-1 text-[10px] leading-tight">
+      <LocChip loc={pickup} />
+      {same ? (
+        <span className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/70">round-trip</span>
+      ) : (
+        <>
+          <ArrowRight className="h-2.5 w-2.5 shrink-0 text-muted-foreground/70" />
+          <LocChip loc={dropoff} />
+        </>
+      )}
+    </div>
+  );
 }
 
 /* ---------- conflict detection: same car overlapping ---------- */
