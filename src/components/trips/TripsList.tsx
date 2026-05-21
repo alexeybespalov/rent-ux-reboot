@@ -306,7 +306,11 @@ export default function TripsList() {
                       onTouchEnd={onPressEnd}
                       className={cn(
                         "group relative flex cursor-pointer items-stretch gap-1.5 pl-0 pr-2 transition-colors",
-                        isActive ? "bg-muted/60" : isSel ? "bg-primary-soft/30" : "hover:bg-muted/40",
+                        isActive
+                          ? "bg-muted/60"
+                          : isSel
+                          ? "bg-primary-soft/30"
+                          : meta.rowBg ?? "hover:bg-muted/40",
                       )}
                     >
                       {/* status rail */}
@@ -327,9 +331,11 @@ export default function TripsList() {
                         {/* row 1: id · status · client · meta */}
                         <div className="flex items-center gap-1.5 text-[11px] leading-tight">
                           <span className="shrink-0 font-bold tabular-nums text-muted-foreground">#{r.id}</span>
-                          <span className={cn("shrink-0 text-[10px] font-semibold lowercase", meta.text)}>
-                            {r.status.replace("_"," ")}
-                          </span>
+                          {!meta.hideLabel && (
+                            <span className={cn("shrink-0 text-[10px] font-semibold lowercase", meta.text)}>
+                              {r.status.replace("_"," ")}
+                            </span>
+                          )}
                           <span className="min-w-0 flex-1 truncate font-semibold text-foreground">
                             {r.flag && <Flag className="mr-1 inline h-2.5 w-2.5 fill-destructive text-destructive" />}
                             {r.client}
@@ -338,7 +344,16 @@ export default function TripsList() {
                             <span className="shrink-0 tabular-nums text-[10px] text-muted-foreground">{r.daysLeft}d</span>
                           )}
                           {r.badges?.map((b) => (
-                            <span key={b} className="shrink-0 rounded border border-border px-1 text-[9px] font-semibold text-muted-foreground">{b}</span>
+                            <span
+                              key={b}
+                              title={BADGE_TITLE[b] ?? b}
+                              className={cn(
+                                "shrink-0 rounded border px-1 text-[9px] font-bold tabular-nums",
+                                BADGE_STYLE[b] ?? "border-border text-muted-foreground",
+                              )}
+                            >
+                              {b}
+                            </span>
                           ))}
                           {hasConflict && (
                             <AlertTriangle className="h-3 w-3 shrink-0 text-destructive" />
