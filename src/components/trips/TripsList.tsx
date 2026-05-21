@@ -41,22 +41,6 @@ function fmtTime(iso: string) {
   const d = new Date(iso);
   return `${String(d.getHours()).padStart(2,"0")}h`;
 }
-function dayKey(iso: string) {
-  const d = new Date(iso);
-  return d.toISOString().slice(0,10);
-}
-function dayLabel(iso: string) {
-  const today = new Date(); today.setHours(0,0,0,0);
-  const tomorrow = new Date(today); tomorrow.setDate(today.getDate()+1);
-  const d = new Date(iso); d.setHours(0,0,0,0);
-  const diff = Math.round((d.getTime()-today.getTime())/86400000);
-  if (diff === 0) return "Today";
-  if (diff === 1) return "Tomorrow";
-  if (diff === -1) return "Yesterday";
-  const w = d.toLocaleDateString("en-US",{weekday:"short"});
-  const m = d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
-  return `${w} · ${m}`;
-}
 
 /* ---------- conflict detection: same car overlapping ---------- */
 function detectConflicts(rows: TripRow[]): Set<number> {
