@@ -29,14 +29,14 @@ import { mockTrips, type TripRow, type TripStatus } from "./mockTrips";
 
 /* ---------- helpers ---------- */
 
-const STATUS_META: Record<TripStatus, { label: string; rail: string; text: string; rowBg?: string; hideLabel?: boolean }> = {
-  new:       { label: "new",       rail: "bg-primary",          text: "text-primary" },
-  confirmed: { label: "confirmed", rail: "bg-warning",          text: "text-warning" },
-  in_rent:   { label: "in_rent",   rail: "bg-success",          text: "text-success" },
-  // finished — без текста, выделяем лёгкой пастелью на фоне строки
-  finished:  { label: "finished",  rail: "bg-sky-300",          text: "text-sky-700", rowBg: "bg-sky-50/70 hover:bg-sky-50", hideLabel: true },
-  done:      { label: "done",      rail: "bg-muted-foreground", text: "text-muted-foreground", rowBg: "bg-muted/30", hideLabel: true },
-  reject:    { label: "reject",    rail: "bg-destructive",      text: "text-destructive" },
+/* Все статусы — пастель + цветной рейл. Текст статуса не показываем (цвет = статус). */
+const STATUS_META: Record<TripStatus, { label: string; rail: string; text: string; rowBg: string; dot: string }> = {
+  new:       { label: "new",       rail: "bg-indigo-400",  text: "text-indigo-700",  rowBg: "bg-indigo-50/60 hover:bg-indigo-50",   dot: "bg-indigo-400" },
+  confirmed: { label: "confirmed", rail: "bg-amber-400",   text: "text-amber-700",   rowBg: "bg-amber-50/60 hover:bg-amber-50",     dot: "bg-amber-400" },
+  in_rent:   { label: "in rent",   rail: "bg-emerald-500", text: "text-emerald-700", rowBg: "bg-emerald-50/60 hover:bg-emerald-50", dot: "bg-emerald-500" },
+  finished:  { label: "finished",  rail: "bg-sky-400",     text: "text-sky-700",     rowBg: "bg-sky-50/60 hover:bg-sky-50",         dot: "bg-sky-400" },
+  done:      { label: "done",      rail: "bg-slate-400",   text: "text-slate-700",   rowBg: "bg-slate-50/70 hover:bg-slate-100/60", dot: "bg-slate-400" },
+  reject:    { label: "reject",    rail: "bg-rose-400",    text: "text-rose-700",    rowBg: "bg-rose-50/60 hover:bg-rose-50",       dot: "bg-rose-400" },
 };
 
 /* ---------- badge palette (color-coded so OA / D+ / R+ / H not blend) ---------- */
