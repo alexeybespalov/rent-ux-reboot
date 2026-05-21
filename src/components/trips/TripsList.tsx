@@ -402,7 +402,7 @@ function DetailPreview({ row, hasConflict, onClose }: { row: TripRow; hasConflic
       <div className="flex items-center gap-2 border-b px-3 py-2">
         <span className={cn("h-2 w-2 rounded-full", meta.rail)} />
         <span className="text-sm font-bold">#{row.id}</span>
-        <span className={cn("rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider", meta.tint, meta.text)}>
+        <span className={cn("text-[10px] font-bold uppercase tracking-wider", meta.text)}>
           {row.status.replace("_"," ")}
         </span>
         {hasConflict && (
